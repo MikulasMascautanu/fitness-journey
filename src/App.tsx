@@ -8,6 +8,7 @@ import { Notice } from './components/Fields';
 import { Icon } from './components/Icon';
 import { formatDate, localDate } from './lib/calculations';
 import { Body } from './components/Body';
+import { Nutrition } from './components/Nutrition';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -90,7 +91,7 @@ function Shell({ email, signOut }: { email: string; signOut(): Promise<void> }) 
         : !profile && (syncError || !online) && !demo ? <div className="card"><h1>Connect to load your profile</h1><p className="muted">An internet connection is needed before your first entry on this device. Your existing account data will appear after a successful sync.</p><button className="button primary" onClick={() => void sync()}>Try again</button></div>
         : !profile ? <ProfileForm /> : <Routes>
           <Route path="/" element={<Body />} />
-          <Route path="/nutrition" element={<><p className="eyebrow">YOUR DAILY FUEL</p><h1>Nutrition</h1><div className="card"><h2>Make each day count.</h2><p className="muted">Set your targets and keep a record of your daily nutrition.</p></div></>} />
+          <Route path="/nutrition" element={<Nutrition />} />
           <Route path="/account" element={<ProfileForm />} />
           <Route path="*" element={<div className="card"><h1>Page not found</h1><NavLink to="/">Back to Body</NavLink></div>} />
         </Routes>}
