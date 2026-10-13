@@ -112,9 +112,15 @@ A working HTML prototype of this UI exists: https://claude.ai/artifact/1ygVsZSUd
 These are open; propose defaults and confirm before building:
 
 - Framework and stack (suggested: a modern SPA framework + TypeScript)
-- Backend and auth for per-account data (suggested: a hosted option such as Supabase, or a small API with SQLite/Postgres)
+- Backend and gmail auth for per-account data (suggested: a hosted option such as Supabase, or a small API with SQLite/Postgres)
 - Charting library (SVG by hand vs Chart.js / Recharts)
 - PWA: web manifest + service worker for install and offline entry
+
+## Working agreement
+
+Commit the work in reasonable chunks. Each commit should be one coherent, working step (for example: project scaffold, account and data model, body fat calculation with tests, Body tab UI, nutrition calculation with tests, Nutrition tab UI, PWA setup), not one giant commit at the end and not a commit per file.
+Write clear commit messages that say what changed and why.
+Keep the app buildable and tests passing at every commit.
 
 ## Definition of done (v1)
 
