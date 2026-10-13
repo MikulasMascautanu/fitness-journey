@@ -1,0 +1,66 @@
+import { describe, expect, it } from 'vitest';
+import { ageOn, bodyFat, energy, goalLabel, isValidDate, nutrition, recentDates, validateProfile } from './calculations';
+import type { Profile } from './types';
+
+const profile: Profile = { id: 'test', sex: 'm', birthdate: '1996-06-15', height_cm: 180, activity: 1.55, protein_g_per_kg: 2, fat_pct: 25, goal_kg_per_week: 0 };
+const today = '2026-10-13';
+
+describe('calendar dates', () => {
+  it('changes age on the birthday', () => {
+    expect(ageOn('1996-06-15', '2026-06-14')).toBe(29);
+    expect(ageOn('1996-06-15', '2026-06-15')).toBe(30);
+    expect(ageOn('1996-06-15', '2026-06-16')).toBe(30);
+  });
+  it('rejects impossible or future birthdates', () => {
+    expect(isValidDate('2025-02-29')).toBe(false);
+    expect(isValidDate('2024-02-29')).toBe(true);
+    expect(() => ageOn('2026-10-14', today)).toThrow();
+  });
+  it('builds consecutive local dates across month and year boundaries', () => {
+    expect(recentDates(3, '2026-01-02')).toEqual(['2025-12-31', '2026-01-01', '2026-01-02']);
+    expect(recentDates(3, '2024-03-01')).toEqual(['2024-02-28', '2024-02-29', '2024-03-01']);
+  });
+});
+
+describe('Jackson–Pollock and Siri', () => {
+  it('uses the male coefficients (30 years, sum 45 mm, density 1.0676965)', () => {
+    expect(bodyFat('m', 30, [10, 20, 15])).toBeCloseTo(13.61489393381172, 6);
+  });
+  it('uses the female coefficients (30 years, sum 60 mm, density 1.0440221)', () => {
+    expect(bodyFat('f', 30, [20, 25, 15])).toBeCloseTo(24.127894419093195, 6);
+  });
+  it('requires exactly three valid readings', () => {
+    for (const sites of [[10, 20], [10, 0, 20], [10, NaN, 20], [101, 10, 10]]) expect(() => bodyFat('m', 30, sites)).toThrow();
+    expect(() => bodyFat('m', 17, [10, 20, 15])).toThrow();
+  });
+});
+
+describe('nutrition targets', () => {
+  it('calculates male and female Mifflin–St Jeor BMR', () => {
+    expect(energy(profile, 80, today).bmr).toBe(1780);
+    expect(energy({ ...profile, sex: 'f' }, 80, today).bmr).toBe(1614);
+  });
+  it.each([[1.2, 2136], [1.375, 2447.5], [1.55, 2759], [1.725, 3070.5]] as const)('uses activity factor %s', (activity, expected) => {
+    expect(energy({ ...profile, activity }, 80, today).tdee).toBeCloseTo(expected);
+  });
+  it.each([[-0.5, 2209], [-0.25, 2484], [0, 2759], [0.25, 3034], [0.5, 3309]] as const)('uses the %s kg/week goal', (goal_kg_per_week, expected) => {
+    expect(nutrition({ ...profile, goal_kg_per_week }, 80, today).kcal).toBe(expected);
+  });
+  it('allocates all calories without rounding intermediate values', () => {
+    const target = nutrition(profile, 80, today);
+    expect(target.protein).toBe(160);
+    expect(target.fat).toBeCloseTo(76.63888889);
+    expect(target.carbs).toBeCloseTo(357.3125);
+    expect(target.protein * 4 + target.carbs * 4 + target.fat * 9).toBeCloseTo(target.kcal, 10);
+  });
+  it('recomputes percentages from maintenance', () => {
+    expect(goalLabel(-0.5, 3000)).toBe('−0.5 kg/wk (-18%)');
+    expect(goalLabel(0.5, 2000)).toBe('+0.5 kg/wk (+28%)');
+    expect(goalLabel(0, 2000)).toBe('Maintain (0%)');
+  });
+  it('rejects invalid profiles, weights, and impossible macro allocations', () => {
+    expect(() => nutrition(profile, NaN, today)).toThrow();
+    expect(() => validateProfile({ ...profile, height_cm: 0 }, today)).toThrow();
+    expect(() => nutrition({ ...profile, sex: 'f', birthdate: '1940-01-01', height_cm: 100, activity: 1.2, goal_kg_per_week: -0.5, protein_g_per_kg: 2.4, fat_pct: 30 }, 40, today)).toThrow(/carbohydrates/);
+  });
+});
