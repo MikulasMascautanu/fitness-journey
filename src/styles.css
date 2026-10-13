@@ -88,3 +88,51 @@ input::placeholder { color: var(--muted); opacity: .65; }
 .google-g { font-weight: 800; font-size: 17px; }
 @media (max-width: 760px) { .sidebar { gap: 8px 16px; } .sidebar-message, .account-email { display: none; } .sidebar-bottom { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; } .account-link { border: 0; padding: 0; min-height: 44px; gap: 8px; } .avatar { width: 26px; height: 26px; } .sign-out { margin: 0 0 0 auto; min-height: 44px; } .pending-note { order: 3; margin: 0; width: 100%; } .topline { font-size: 10px; gap: 10px; } .form-grid.three { grid-template-columns: repeat(2, minmax(0, 1fr)); } .welcome { grid-template-columns: 1fr; } .welcome-story { padding: 28px 30px; gap: 36px; } .welcome-story h1 { font-size: 42px; } .welcome-visual, .welcome-footnote { display: none; } .welcome-action { padding: 40px 24px; } .form-footer { flex-wrap: wrap; } .page-footer { gap: 20px; } }
 @media (max-width: 380px) { .form-grid, .form-grid.three { grid-template-columns: 1fr; } nav a { gap: 6px; padding: 8px; } .main-content { padding-left: 14px; padding-right: 14px; } .card { padding: 16px; } }
+:root { --bar: #88a27b; --bar-muted: #d1d9ca; }
+.page-heading { display: flex; justify-content: space-between; align-items: flex-start; }
+.heading-icon { color: var(--accent); padding: 12px; border: 1px solid var(--border); border-radius: 11px; margin-top: 8px; }
+.summary-card { display: grid; grid-template-columns: 1fr 1.1fr; padding: 28px; }
+.stat-label { display: block; color: var(--muted); font-size: 11px; margin-bottom: 8px; }
+.big-number { font-size: 52px; font-weight: 600; line-height: 1.1; letter-spacing: -2.6px; font-variant-numeric: tabular-nums; }
+.big-number>span { font-size: 20px; color: var(--muted); font-weight: 400; margin-left: 8px; letter-spacing: -.5px; }
+.stat-caption { display: block; color: var(--muted); font-size: 10px; margin-top: 12px; }
+.summary-secondary { border-left: 1px solid var(--border); padding-left: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: center; }
+.medium-number { font-size: 23px; letter-spacing: -.7px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.medium-number small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.metric-switcher { display: flex; flex-wrap: wrap; gap: 4px; margin: -4px 0 18px; }
+.metric-switcher button { border: 0; border-radius: 6px; background: transparent; color: var(--muted); padding: 8px 11px; min-height: 36px; font-size: 11px; }
+.metric-switcher button[aria-pressed="true"] { background: var(--soft); color: var(--accent); font-weight: 600; }
+.chart { width: 100%; display: block; overflow: visible; }
+.chart text { font-family: inherit; font-size: 9px; fill: var(--muted); }
+.chart-caption { display: flex; justify-content: space-between; margin-top: 13px; font-size: 10px; color: var(--muted); }
+.chart-caption>span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-dot { display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+.chart-empty { min-height: 195px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; color: var(--muted); font-size: 11px; }
+.chart-empty strong { font-size: 13px; font-weight: 500; color: var(--text); }
+.empty-chart-mark { color: var(--accent); font-size: 30px; }
+.subtle-label { font-size: 10px; color: var(--muted); }
+.form-section { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 23px; }
+.form-section h3 { margin: 0 0 17px; font-family: inherit; font-weight: 550; font-size: 12px; display: flex; justify-content: space-between; }
+.form-section h3 span { color: var(--muted); font-weight: 400; font-size: 10px; }
+.estimate { display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 15px 17px; margin-top: 20px; background: var(--soft); color: var(--accent); border-radius: 7px; }
+.estimate strong { display: block; font-weight: 550; font-size: 11px; }
+.estimate div>span { display: block; margin-top: 5px; font-size: 10px; opacity: .8; }
+.estimate-value { font-size: 24px; letter-spacing: -.5px; white-space: nowrap; }
+.estimate-value small { font-size: 12px; margin-left: 3px; }
+.entry-form { scroll-margin-top: 160px; }
+.table-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; text-align: left; white-space: nowrap; font-size: 12px; }
+th, td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+thead th { font-size: 10px; font-weight: 400; color: var(--muted); padding-bottom: 13px; }
+th:first-child, td:first-child { padding-left: 0; }
+th:last-child, td:last-child { padding-right: 0; text-align: right; }
+tbody th { font-weight: 450; font-size: 11px; }
+td span { color: var(--muted); font-size: 10px; }
+td .text-button { font-size: 10px; min-width: 44px; justify-content: flex-end; }
+tbody tr:last-child th, tbody tr:last-child td { border-bottom: 0; }
+.history-more { font-size: 11px; width: 100%; justify-content: center; border-top: 1px solid var(--border); margin-top: 4px; padding-top: 16px; }
+.empty-history { font-size: 12px; color: var(--muted); text-align: center; padding: 20px 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (prefers-color-scheme: dark) { :root { --bar: #88ab79; --bar-muted: #465340; } }
+@media (max-width: 760px) { .summary-card { padding: 22px; grid-template-columns: 1fr 1.25fr; } .summary-secondary { padding-left: 18px; gap: 14px; } .big-number { font-size: 42px; } .big-number>span { font-size: 16px; } .medium-number { font-size: 21px; } .metric-switcher button { min-height: 44px; padding: 8px 10px; } .chart text { font-size: 11px; } .subtle-label { font-size: 9px; } }
+@media (max-width: 480px) { .summary-card { grid-template-columns: 1fr; gap: 23px; } .summary-secondary { border-left: 0; border-top: 1px solid var(--border); padding: 20px 0 0; } .summary-primary { position: relative; } .summary-primary .stat-caption { position: absolute; right: 0; bottom: 4px; max-width: 120px; text-align: right; line-height: 1.6; } .chart-card { padding-left: 16px; padding-right: 16px; } .card-heading { gap: 8px; } .card-heading h2 { font-size: 15px; } }
