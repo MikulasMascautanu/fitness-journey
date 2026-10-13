@@ -4,6 +4,7 @@ import { emptySnapshot, type BodyEntry, type FoodDay, type PendingWrite, type Pr
 export interface Storage {
   load(accountId: string): Promise<Snapshot | undefined>;
   save(accountId: string, snapshot: Snapshot): Promise<void>;
+  update?(accountId: string, transform: (current: Snapshot) => Snapshot): Promise<Snapshot>;
 }
 export interface Remote {
   pull(accountId: string): Promise<Records>;
@@ -13,6 +14,13 @@ export interface Remote {
 export const browserStorage: Storage = {
   async load(id) { return (await database()).get('accounts', id); },
   async save(id, snapshot) { await (await database()).put('accounts', snapshot, id); },
+  async update(id, transform) {
+    const transaction = (await database()).transaction('accounts', 'readwrite');
+    const next = transform(await transaction.store.get(id) ?? emptySnapshot());
+    await transaction.store.put(next, id);
+    await transaction.done;
+    return next;
+  },
 };
 function database() {
   return openDB('fit-log-v1', 1, { upgrade(db) { db.createObjectStore('accounts'); } });
@@ -40,8 +48,11 @@ export class Repository {
 
   private mutate(update: (current: Snapshot) => Snapshot): Promise<void> {
     const operation = this.chain.then(async () => {
-      const next = update(this.snapshot);
-      await this.storage.save(this.accountId, next);
+      // One IndexedDB transaction also protects against stale snapshots in other tabs.
+      const next = this.storage.update
+        ? await this.storage.update(this.accountId, update)
+        : update(this.snapshot);
+      if (!this.storage.update) await this.storage.save(this.accountId, next);
       this.snapshot = next;
       if (!this.stopped) this.changed(next);
     });
@@ -71,6 +82,7 @@ export class Repository {
 
   private async performSync() {
     await this.chain;
+    await this.mutate(current => current);
     while (!this.stopped && this.snapshot.pending.length) {
       // Profiles must exist before their child records, including after offline onboarding.
       const write = this.snapshot.pending.find(x => x.table === 'profiles') ?? this.snapshot.pending[0];
