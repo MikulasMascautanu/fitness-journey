@@ -2,7 +2,7 @@
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   sex text not null check (sex in ('m', 'f')),
-  birthdate date not null check (birthdate <= current_date - interval '18 years' and birthdate >= current_date - interval '121 years'),
+  birthdate date not null check (birthdate <= current_date - interval '18 years' + interval '1 day' and birthdate >= current_date - interval '121 years'),
   height_cm numeric not null check (height_cm between 100 and 250),
   activity numeric not null default 1.55 check (activity in (1.2, 1.375, 1.55, 1.725)),
   protein_g_per_kg numeric not null default 2 check (protein_g_per_kg in (1.6, 2, 2.4)),
@@ -13,7 +13,8 @@ create table public.profiles (
 create table public.body_entries (
   id uuid not null default gen_random_uuid(),
   account_id uuid not null references public.profiles(id) on delete cascade,
-  date date not null check (date <= current_date),
+  -- A local calendar date can be one day ahead of the database's UTC date.
+  date date not null check (date <= current_date + 1),
   weight_kg numeric not null check (weight_kg between 25 and 400),
   body_fat_pct numeric check (body_fat_pct > 0 and body_fat_pct < 70),
   skinfold_1_mm numeric check (skinfold_1_mm between 1 and 100),
@@ -35,7 +36,7 @@ create table public.body_entries (
 create table public.food_days (
   id uuid not null default gen_random_uuid(),
   account_id uuid not null references public.profiles(id) on delete cascade,
-  date date not null check (date <= current_date),
+  date date not null check (date <= current_date + 1),
   kcal numeric not null check (kcal between 0 and 20000),
   protein_g numeric not null check (protein_g between 0 and 2000),
   carbs_g numeric not null check (carbs_g between 0 and 3000),

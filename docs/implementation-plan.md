@@ -2,6 +2,8 @@
 
 Status: defaults approved. Include Supabase setup instructions; no backend project exists yet.
 
+Implementation is complete for local review. Production build, 27 unit tests, and 14 desktop/mobile browser checks pass. Real Google OAuth and hosted row-level security remain unverified until a Supabase project is configured. See `README.md` for setup and `goal.md` for the verification checklist.
+
 ## Proposed defaults
 
 - React + TypeScript + Vite for the web app, built in this repository.

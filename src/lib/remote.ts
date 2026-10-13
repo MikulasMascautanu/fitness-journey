@@ -13,11 +13,11 @@ export const remote: Remote = {
     await assertSession(accountId);
     const [profile, body, food] = await Promise.all([
       supabase!.from('profiles').select('*').eq('id', accountId).maybeSingle(),
-      supabase!.from('body_entries').select('*').eq('account_id', accountId).order('date', { ascending: false }),
-      supabase!.from('food_days').select('*').eq('account_id', accountId).order('date', { ascending: false }),
+      allRows<BodyEntry>('body_entries', accountId),
+      allRows<FoodDay>('food_days', accountId),
     ]);
-    for (const result of [profile, body, food]) if (result.error) throw result.error;
-    return { profile: profile.data as Profile | null, body: (body.data ?? []) as BodyEntry[], food: (food.data ?? []) as FoodDay[] };
+    if (profile.error) throw profile.error;
+    return { profile: profile.data as Profile | null, body, food };
   },
   async push(write) {
     await assertSession(write.table === 'profiles' ? write.record.id : write.record.account_id);
@@ -25,3 +25,14 @@ export const remote: Remote = {
     if (error) throw error;
   },
 };
+
+// Supabase caps a response at 1,000 rows by default. Keep the full history available.
+async function allRows<T>(table: 'body_entries' | 'food_days', accountId: string): Promise<T[]> {
+  const rows: T[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await supabase!.from(table).select('*').eq('account_id', accountId).order('date', { ascending: false }).range(offset, offset + 999);
+    if (error) throw error;
+    rows.push(...data as T[]);
+    if (data.length < 1000) return rows;
+  }
+}

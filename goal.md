@@ -109,12 +109,13 @@ A working HTML prototype of this UI exists: https://claude.ai/artifact/1ygVsZSUd
 
 ## Technical decisions to make
 
-These are open; propose defaults and confirm before building:
+Confirmed on 2026-10-13:
 
-- Framework and stack (suggested: a modern SPA framework + TypeScript)
-- Backend and gmail auth for per-account data (suggested: a hosted option such as Supabase, or a small API with SQLite/Postgres)
-- Charting library (SVG by hand vs Chart.js / Recharts)
-- PWA: web manifest + service worker for install and offline entry
+- React + TypeScript + Vite, implemented in this repository
+- Supabase Postgres and Google sign-in, with per-account row-level security
+- Lightweight SVG charts
+- Web manifest + service worker, with IndexedDB storage and an offline sync queue
+- No existing Supabase project: include migrations and setup instructions in `README.md`
 
 ## Working agreement
 
@@ -124,11 +125,19 @@ Keep the app buildable and tests passing at every commit.
 
 ## Definition of done (v1)
 
-- [ ] Account with sex, age/birthdate, height; sign in and out
-- [ ] Left-side nav with Body and Nutrition routes
-- [ ] Body: log weight, measurements, calipers; live body fat %; metric chart; history
-- [ ] Nutrition: TDEE/BMR calculator, kg/week goal presets with percentage, macro split, daily log, calories chart, history
-- [ ] Data persists per account
-- [ ] Works well on a phone (input) and on desktop (review)
-- [ ] Installable as a PWA
-- [ ] Unit tests for the body fat and calorie/macro calculations
+- [ ] Account with sex, age/birthdate, height; sign in and out — implemented; live Google authentication awaits Supabase setup
+- [x] Left-side nav with Body and Nutrition routes
+- [x] Body: log weight, measurements, calipers; live body fat %; metric chart; history
+- [x] Nutrition: TDEE/BMR calculator, kg/week goal presets with percentage, macro split, daily log, calories chart, history
+- [ ] Data persists per account — local isolation and sync queue tested; live database ownership checks await Supabase setup
+- [x] Works well on a phone (input) and on desktop (review)
+- [x] Installable as a PWA
+- [x] Unit tests for the body fat and calorie/macro calculations
+
+## Implementation status (2026-10-13)
+
+The app is implemented and available locally with `npm run dev`. **Explore the demo** works without backend credentials and clearly labels its sample data. Real accounts start empty.
+
+Verified: production build, 27 unit tests, and 14 Chromium browser checks across desktop and mobile viewports. Browser checks cover both themes, form entry/editing, reload persistence, female caliper sites, nutrition settings, offline deep navigation and entry, install assets, sign-out, and concurrent saves from two tabs. Desktop and mobile screenshots were reviewed.
+
+The two unchecked items have implementation and setup documentation but need a Supabase project and configured Google OAuth for live verification. Follow `README.md` and run the supplied migration, then test Google sign-in/out, cloud synchronization, and isolation between two real accounts. No deployment has been made.
