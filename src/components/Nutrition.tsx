@@ -398,6 +398,12 @@ function PlanSettings({
 		setSettings((current) => ({ ...current, [key]: value }));
 		setError("");
 	}
+	function cancel() {
+		setSettings(profile);
+		setProtein(String(profile.protein_g_per_kg));
+		setFat(String(profile.fat_pct));
+		setError("");
+	}
 	async function submit(event: FormEvent) {
 		event.preventDefault();
 		setError("");
@@ -528,9 +534,14 @@ function PlanSettings({
 							? `Preview: ${Math.round(preview.kcal).toLocaleString()} kcal · P ${Math.round(preview.protein)} / C ${Math.round(preview.carbs)} / F ${Math.round(preview.fat)} g`
 							: "Carbs fill the remaining calories."}
 					</span>
-					<button className="button primary" disabled={busy || !changed}>
-						{busy ? "Saving…" : "Save targets"}
-					</button>
+					<div className="plan-actions">
+						<button type="button" className="button secondary" onClick={cancel} disabled={busy || !changed}>
+							Cancel
+						</button>
+						<button className="button primary" disabled={busy || !changed}>
+							{busy ? "Saving…" : "Save targets"}
+						</button>
+					</div>
 				</div>
 			</form>
 		</details>

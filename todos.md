@@ -10,6 +10,8 @@ TBD - very minor bug, ignore for now.
 
 2. [x] Rename the app to "Fitness Journey" throughout the UI, package metadata, and documentation. Retain original storage identifiers and migration history for compatibility.
 
+3. Add a cancel button to the "Your plan" section that resets to saved targets. Also make the Your plan text bigger, as big as Daily Calories
+
 # Features
 
 1. For females, implement a menstural cycle logging at the bottom of Body page (needs updates in db schema). The body weight chart will have a toggle to enable cycles to be reflected in there as a colored background. This is to give perspective about how weight changes with the cycle.
