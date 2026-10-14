@@ -50,7 +50,7 @@ Out of scope for v1: workout logging, food database / barcode scanning, social f
 - BMR (Mifflin-St Jeor): `10*kg + 6.25*cm - 5*age + 5` (male) or `- 161` (female). Weight = latest Body entry.
 - TDEE = BMR \* activity factor (1.2 sedentary, 1.375 light, 1.55 moderate, 1.725 high)
 - Target kcal = TDEE + (kg_per_week \* 7700 / 7)
-- Protein = g per kg bodyweight (options 1.6 / 2.0 / 2.4), fat = % of kcal (20 / 25 / 30), carbs = remaining kcal / 4
+- Protein = g per kg bodyweight (0.1–5 in 0.1 increments; presets 1.6 / 2.0 / 2.4), fat = % of kcal (15–30 in 1% increments; presets 20 / 25 / 30), carbs = remaining kcal / 4
 
 **Weekly goal presets**: defined in kg per week, with the equivalent percentage of maintenance in parentheses (computed from the user's TDEE, so it updates with their numbers):
 

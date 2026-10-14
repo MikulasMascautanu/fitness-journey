@@ -53,6 +53,20 @@ describe('nutrition targets', () => {
     expect(target.carbs).toBeCloseTo(357.3125);
     expect(target.protein * 4 + target.carbs * 4 + target.fat * 9).toBeCloseTo(target.kcal, 10);
   });
+  it.each([[1.8, 15], [2.5, 23], [0.1, 30], [5, 15]])('calculates custom protein %s and fat %s targets', (protein, fat) => {
+    const target = nutrition({ ...profile, protein_g_per_kg: protein, fat_pct: fat }, 80, today);
+    expect(target.protein).toBeCloseTo(protein * 80);
+    expect(target.fat).toBeCloseTo(2759 * fat / 100 / 9);
+    expect(target.protein * 4 + target.carbs * 4 + target.fat * 9).toBeCloseTo(target.kcal, 10);
+  });
+  it('rejects macro targets outside their ranges and non-finite values', () => {
+    for (const protein_g_per_kg of [0, 5.1, NaN, Infinity]) {
+      expect(() => validateProfile({ ...profile, protein_g_per_kg }, today)).toThrow(/Protein/);
+    }
+    for (const fat_pct of [14, 31, NaN, Infinity]) {
+      expect(() => validateProfile({ ...profile, fat_pct }, today)).toThrow(/Fat/);
+    }
+  });
   it('recomputes percentages from maintenance', () => {
     expect(goalLabel(-0.5, 3000)).toBe('−0.5 kg/wk (-18%)');
     expect(goalLabel(0.5, 2000)).toBe('+0.5 kg/wk (+28%)');

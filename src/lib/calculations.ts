@@ -48,8 +48,8 @@ export function validateProfile(profile: Profile, on = localDate()): void {
   inRange(profile.height_cm, 100, 250, 'Height (cm)');
   if (!['m', 'f'].includes(profile.sex)) throw new Error('Select a sex for the calculation.');
   if (!activities.some(a => a.value === profile.activity)) throw new Error('Select an activity level.');
-  if (![1.6, 2, 2.4].includes(profile.protein_g_per_kg)) throw new Error('Select a protein target.');
-  if (![20, 25, 30].includes(profile.fat_pct)) throw new Error('Select a fat target.');
+  inRange(profile.protein_g_per_kg, 0.1, 5, 'Protein (g/kg)');
+  inRange(profile.fat_pct, 15, 30, 'Fat (%)');
   if (!goals.includes(profile.goal_kg_per_week)) throw new Error('Select a weekly goal.');
 }
 

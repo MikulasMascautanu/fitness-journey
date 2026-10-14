@@ -6,7 +6,7 @@ TBD - very minor bug, ignore for now.
 
 # Improvements
 
-1. In Nutrition page, the Protein and Fat presets are nice, but I need more precise adjusting. For protein I want to be able to change decimals, e.g. 1.8 to 2.5, and for Fats I want to be able to change percentages from 15% to 30%.
+1. [x] In Nutrition page, the Protein and Fat presets are nice, but I need more precise adjusting. For protein I want to be able to change decimals, e.g. 1.8 to 2.5, and for Fats I want to be able to change percentages from 15% to 30%.
 
 2. Rename "Fit Log" to "Fitness Journey" everywhere in the project.
 

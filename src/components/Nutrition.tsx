@@ -10,6 +10,7 @@ import {
 	isValidDate,
 	localDate,
 	nutrition,
+	validateProfile,
 } from "../lib/calculations";
 import { errorMessage, useData } from "../lib/data";
 import type { FoodDay, Profile } from "../lib/types";
@@ -370,7 +371,14 @@ function PlanSettings({
 	weight?: number;
 }) {
 	const { saveProfile } = useData();
-	const [draft, setDraft] = useState(profile);
+	const [settings, setSettings] = useState(profile);
+	const [protein, setProtein] = useState(String(profile.protein_g_per_kg));
+	const [fat, setFat] = useState(String(profile.fat_pct));
+	const draft = {
+		...settings,
+		protein_g_per_kg: protein === "" ? NaN : Number(protein),
+		fat_pct: fat === "" ? NaN : Number(fat),
+	};
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
 	const changed = JSON.stringify(draft) !== JSON.stringify(profile);
@@ -386,7 +394,7 @@ function PlanSettings({
 		}
 	}
 	function update<K extends keyof Profile>(key: K, value: Profile[K]) {
-		setDraft((current) => ({ ...current, [key]: value }));
+		setSettings((current) => ({ ...current, [key]: value }));
 		setError("");
 	}
 	async function submit(event: FormEvent) {
@@ -394,6 +402,7 @@ function PlanSettings({
 		setError("");
 		setBusy(true);
 		try {
+			validateProfile(draft);
 			if (previewError) throw new Error(previewError);
 			await saveProfile(draft);
 		} catch (error) {
@@ -470,35 +479,44 @@ function PlanSettings({
 					</p>
 				</fieldset>
 				<div className="form-grid">
-					<SelectField
-						label="Protein"
-						value={draft.protein_g_per_kg}
-						onChange={(e) =>
-							update(
-								"protein_g_per_kg",
-								Number(e.target.value) as Profile["protein_g_per_kg"],
-							)
-						}
-					>
-						{[1.6, 2, 2.4].map((n) => (
-							<option key={n} value={n}>
-								{n.toFixed(1)} g / kg bodyweight
-							</option>
-						))}
-					</SelectField>
-					<SelectField
-						label="Fat"
-						value={draft.fat_pct}
-						onChange={(e) =>
-							update("fat_pct", Number(e.target.value) as Profile["fat_pct"])
-						}
-					>
-						{[20, 25, 30].map((n) => (
-							<option key={n} value={n}>
-								{n}% of daily calories
-							</option>
-						))}
-					</SelectField>
+					{[
+						{ label: "Protein target", value: protein, setValue: setProtein, min: 0.1, max: 5, step: 0.1, unit: "g/kg", presets: [1.6, 2, 2.4] },
+						{ label: "Fat target", value: fat, setValue: setFat, min: 15, max: 30, step: 1, unit: "%", presets: [20, 25, 30] },
+					].map(({ label, value, setValue, min, max, step, unit, presets }) => (
+						<div key={label}>
+							<Field
+								label={label}
+								unit={unit}
+								type="number"
+								inputMode={step < 1 ? "decimal" : "numeric"}
+								min={min}
+								max={max}
+								step={step}
+								required
+								value={value}
+								onChange={(e) => {
+									setValue(e.target.value);
+									setError("");
+								}}
+							/>
+							<div className="target-presets" role="group" aria-label={`${label} presets`}>
+								{presets.map((preset) => (
+									<button
+										key={preset}
+										type="button"
+										className="text-button"
+										aria-pressed={Number(value) === preset}
+										onClick={() => {
+											setValue(String(preset));
+											setError("");
+										}}
+									>
+										{preset} {unit}
+									</button>
+								))}
+							</div>
+						</div>
+					))}
 				</div>
 				{previewError && <Notice error>{previewError}</Notice>}
 				{error && <Notice error>{error}</Notice>}

@@ -5,8 +5,8 @@ export type Profile = {
   birthdate: string;
   height_cm: number;
   activity: 1.2 | 1.375 | 1.55 | 1.725;
-  protein_g_per_kg: 1.6 | 2 | 2.4;
-  fat_pct: 20 | 25 | 30;
+  protein_g_per_kg: number;
+  fat_pct: number;
   goal_kg_per_week: -0.5 | -0.25 | 0 | 0.25 | 0.5;
 };
 export const measurements = ['waist', 'chest', 'hips', 'arm', 'thigh', 'neck'] as const;

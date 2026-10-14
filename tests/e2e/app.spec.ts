@@ -5,7 +5,8 @@ async function demo(page: Page) {
   await page.getByRole('button', { name: 'Explore the demo' }).click();
   await expect(page.getByRole('heading', { name: 'Body', exact: true })).toBeVisible();
   const dismiss = page.getByRole('button', { name: 'Dismiss', exact: true });
-  if (await dismiss.isVisible()) await dismiss.click();
+  await expect(dismiss).toBeVisible();
+  await dismiss.click();
 }
 
 test('body logging, same-date overwrite, and reload persistence', async ({ page }) => {
@@ -46,6 +47,39 @@ test('nutrition settings and daily logging persist', async ({ page }) => {
   await page.reload();
   await expect(page.getByRole('spinbutton', { name: 'Calories' })).toHaveValue('2400');
   await expect(page.locator('.target-card .stat-caption')).toHaveText('Maintain (0%)');
+});
+
+test('custom macro targets validate, preview, and persist', async ({ page }) => {
+  await demo(page);
+  await page.getByRole('link', { name: 'Nutrition', exact: true }).click();
+  await page.locator('.plan-card summary').click();
+  const protein = page.getByRole('spinbutton', { name: 'Protein target', exact: true });
+  const fat = page.getByRole('spinbutton', { name: 'Fat target', exact: true });
+  await protein.fill('');
+  await fat.fill('14');
+  await page.getByRole('button', { name: 'Save targets' }).click();
+  await expect(protein).toHaveValue('');
+  expect(await protein.evaluate((input: HTMLInputElement) => input.validity.valueMissing)).toBe(true);
+  await protein.fill('1.8');
+  expect(await fat.evaluate((input: HTMLInputElement) => input.validity.rangeUnderflow)).toBe(true);
+  await fat.fill('15');
+  await expect(page.locator('.plan-form .form-footer')).toContainText('Preview:');
+  await page.getByRole('button', { name: 'Save targets' }).click();
+  await expect(page.locator('.macro-bar .fat')).toHaveAttribute('style', 'width: 15%;');
+  await page.reload();
+  await page.locator('.plan-card summary').click();
+  await expect(protein).toHaveValue('1.8');
+  await expect(fat).toHaveValue('15');
+  await page.getByRole('group', { name: 'Protein target presets', exact: true }).getByRole('button', { name: '2.4 g/kg', exact: true }).click();
+  await expect(protein).toHaveValue('2.4');
+  await protein.fill('2.5');
+  await fat.fill('23');
+  await page.getByRole('button', { name: 'Save targets' }).click();
+  await expect(page.locator('.macro-bar .fat')).toHaveAttribute('style', 'width: 23%;');
+  await page.reload();
+  await page.locator('.plan-card summary').click();
+  await expect(protein).toHaveValue('2.5');
+  await expect(fat).toHaveValue('23');
 });
 
 test('account settings change the caliper sites', async ({ page }) => {

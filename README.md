@@ -15,7 +15,7 @@ Open the printed local URL. **Explore the demo** works without a backend. It con
 
 ## Configure real accounts
 
-1. Create a [Supabase project](https://supabase.com/dashboard). In its SQL editor, run [`supabase/migrations/202610130001_fit_log.sql`](supabase/migrations/202610130001_fit_log.sql). This creates profiles, body entries, and food days, with ownership policies and one entry per account/date. Alternatively apply the migration through the Supabase CLI.
+1. Create a [Supabase project](https://supabase.com/dashboard). In its SQL editor, run [`supabase/migrations/202610130001_fit_log.sql`](supabase/migrations/202610130001_fit_log.sql). This creates profiles, body entries, and food days, with ownership policies and one entry per account/date. Then run [`supabase/migrations/202610150001_precise_macro_targets.sql`](supabase/migrations/202610150001_precise_macro_targets.sql) to enable custom protein and fat targets. For an existing installation, run only the new migration. Alternatively apply all pending migrations through the Supabase CLI.
 2. Copy `.env.example` to `.env.local`. Set `VITE_SUPABASE_URL` to the project URL and `VITE_SUPABASE_PUBLISHABLE_KEY` to the project's publishable key (a legacy anon key also works). Both are public browser configuration; access control is enforced by database row-level security. **Never put a service-role key or an OAuth client secret in a `VITE_` variable.**
 3. Follow [Supabase's Google provider setup](https://supabase.com/docs/guides/auth/social-login/auth-google). Create a Google web OAuth client. Add the Supabase callback URL shown in its Authentication → Sign In / Providers → Google settings to Google's authorized redirect URIs. Store the Google client ID and secret in Supabase's Google provider configuration and enable the provider.
 4. In Supabase Authentication → URL Configuration, set the production Site URL when available. Allow `http://localhost:5173`, `http://127.0.0.1:5173`, and the exact production origin as redirect URLs. Add `http://127.0.0.1:4173` only if you need to verify real sign-in in the production preview.
@@ -39,6 +39,7 @@ The browser tests use the explicitly labeled local demo. To check the backend af
 
 ## Storage and offline behavior
 
+- Protein targets accept 0.1–5 g/kg in 0.1 increments; fat targets accept 15–30% in 1% increments. The original presets remain available as shortcuts.
 - Profiles store birthdate, sex used by the equations, height, activity, and macro/weekly-goal settings.
 - Body entries store weight, optional measurements, optional complete three-site calipers, and the calculated body-fat estimate. Age is calculated on the entry date. Changing a profile later does not recalculate saved body-fat history.
 - Nutrition uses the latest dated weight and current profile. History differences and the dashed calorie target line use the **current** target. Macros are rounded for display only.

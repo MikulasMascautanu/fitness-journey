@@ -182,3 +182,7 @@ abbr { text-decoration: none; cursor: help; }
 .pwa-notice p { font-size: 12px; margin: 0; }
 .pwa-notice>div { display: flex; gap: 20px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+
+.target-presets { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.target-presets button { min-height: 44px; }
+.target-presets button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 4px; }
