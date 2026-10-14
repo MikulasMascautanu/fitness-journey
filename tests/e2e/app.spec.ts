@@ -84,6 +84,35 @@ test('custom macro targets validate, preview, and persist', async ({ page }) => 
   await expect(fat).toHaveValue('23');
 });
 
+test('plan stays open when presets restore saved targets', async ({ page }) => {
+  await demo(page);
+  await page.getByRole('link', { name: 'Nutrition', exact: true }).click();
+  const plan = page.locator('.plan-card');
+  const summary = plan.locator('summary');
+  const proteinPresets = page.getByRole('group', { name: 'Protein target presets', exact: true });
+  const fatPresets = page.getByRole('group', { name: 'Fat target presets', exact: true });
+  const save = page.getByRole('button', { name: 'Save targets' });
+  await summary.click();
+  await proteinPresets.getByRole('button', { name: '2.4 g/kg', exact: true }).click();
+  await save.click();
+  await expect(plan).not.toHaveAttribute('open');
+  await summary.click();
+  await proteinPresets.getByRole('button', { name: '1.6 g/kg', exact: true }).click();
+  await expect(save).toBeEnabled();
+  await proteinPresets.getByRole('button', { name: '2.4 g/kg', exact: true }).click();
+  await expect(plan).toHaveAttribute('open');
+  await expect(save).toBeDisabled();
+  await fatPresets.getByRole('button', { name: '20 %', exact: true }).click();
+  await fatPresets.getByRole('button', { name: '25 %', exact: true }).click();
+  await expect(plan).toHaveAttribute('open');
+  await expect(save).toBeDisabled();
+  await proteinPresets.getByRole('button', { name: '1.6 g/kg', exact: true }).click();
+  await summary.click();
+  await expect(plan).not.toHaveAttribute('open');
+  await summary.click();
+  await expect(page.getByRole('spinbutton', { name: 'Protein target', exact: true })).toHaveValue('1.6');
+});
+
 test('account settings change the caliper sites', async ({ page }) => {
   await demo(page);
   await page.getByRole('link', { name: /Demo account/ }).click();

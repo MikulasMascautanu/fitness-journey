@@ -393,6 +393,7 @@ function PlanSettings({
 			previewError = errorMessage(error);
 		}
 	}
+	const [expanded, setExpanded] = useState(Boolean(previewError));
 	function update<K extends keyof Profile>(key: K, value: Profile[K]) {
 		setSettings((current) => ({ ...current, [key]: value }));
 		setError("");
@@ -414,7 +415,8 @@ function PlanSettings({
 	return (
 		<details
 			className="card plan-card"
-			open={changed || Boolean(previewError) || undefined}
+			open={expanded}
+			onToggle={(event) => setExpanded(event.currentTarget.open)}
 		>
 			<summary>
 				<span>
