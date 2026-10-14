@@ -1,4 +1,4 @@
-# Fit Log implementation plan
+# Fitness Journey implementation plan
 
 Status: defaults approved. Include Supabase setup instructions; no backend project exists yet.
 

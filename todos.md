@@ -8,7 +8,7 @@ TBD - very minor bug, ignore for now.
 
 1. [x] In Nutrition page, the Protein and Fat presets are nice, but I need more precise adjusting. For protein I want to be able to change decimals, e.g. 1.8 to 2.5, and for Fats I want to be able to change percentages from 15% to 30%.
 
-2. Rename "Fit Log" to "Fitness Journey" everywhere in the project.
+2. [x] Rename the app to "Fitness Journey" throughout the UI, package metadata, and documentation. Retain original storage identifiers and migration history for compatibility.
 
 # Features
 

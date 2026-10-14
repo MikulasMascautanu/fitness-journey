@@ -92,7 +92,7 @@ Prefer storing `birthdate` over `age` so age stays correct over time.
 Desktop wireframe
 
 +----------+-----------------------------------------+
-| Fit Log    |  Body                                 |
+| Fitness Journey    |  Body                                 |
 |            |  +---------------------------------+  |
 | > Body     |  | 86.9 kg        -4.4 kg since 08/17||
 |   Nutri-   |  +---------------------------------+  |

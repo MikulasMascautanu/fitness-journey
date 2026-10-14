@@ -13,6 +13,7 @@ import { Nutrition } from "./components/Nutrition";
 export default function App() {
 	const [session, setSession] = useState<Session | null>(null);
 	const [loading, setLoading] = useState(Boolean(supabase));
+	// Keep the original key so existing demo sessions survive the branding change.
 	const [demo, setDemo] = useState(
 		() => localStorage.getItem("fit-log-demo") === "true",
 	);
@@ -80,7 +81,7 @@ export default function App() {
 	if (loading)
 		return (
 			<div className="center-screen" role="status">
-				Loading Fit Log…
+				Loading Fitness Journey…
 			</div>
 		);
 	if (session || demo)
@@ -103,7 +104,7 @@ export default function App() {
 		<div className="welcome">
 			<div className="welcome-story">
 				<a className="brand" href="/">
-					Fit Log
+					Fitness Journey
 					<span className="brand-dot" />
 				</a>
 				<div>
@@ -229,7 +230,7 @@ function Shell({
 			</a>
 			<aside className="sidebar">
 				<NavLink className="brand" to="/">
-					Fit Log
+					Fitness Journey
 					<span className="brand-dot" />
 				</NavLink>
 				<span className="nav-caption">{formatDate(localDate(), true)}</span>
@@ -333,7 +334,7 @@ function Shell({
 					</Routes>
 				)}
 				<footer className="page-footer">
-					FIT LOG <span>A little every day goes a long way.</span>
+					FITNESS JOURNEY <span>A little every day goes a long way.</span>
 				</footer>
 			</main>
 		</div>

@@ -2,6 +2,8 @@ import { expect, test, type Page } from '@playwright/test';
 
 async function demo(page: Page) {
   await page.goto('/');
+  await expect(page).toHaveTitle('Fitness Journey');
+  await expect(page.getByRole('link', { name: 'Fitness Journey', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Explore the demo' }).click();
   await expect(page.getByRole('heading', { name: 'Body', exact: true })).toBeVisible();
   const dismiss = page.getByRole('button', { name: 'Dismiss', exact: true });
@@ -137,6 +139,8 @@ test('manifest supplies install icons', async ({ request }) => {
   expect(response.ok()).toBe(true);
   const manifest = await response.json();
   expect(manifest.display).toBe('standalone');
+  expect(manifest.name).toBe('Fitness Journey — Body & Nutrition');
+  expect(manifest.short_name).toBe('Fitness Journey');
   expect(manifest.icons.map((icon: { sizes: string }) => icon.sizes)).toContain('512x512');
   for (const icon of manifest.icons) expect((await request.get(icon.src)).ok()).toBe(true);
 });

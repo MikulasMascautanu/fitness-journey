@@ -14,7 +14,7 @@ export function PwaStatus() {
   }, []);
   if (!needRefresh && !offlineReady && !install) return null;
   return <aside className="pwa-notice" aria-label="App availability">
-    <p>{needRefresh ? 'An update is ready. Save your entries before reloading.' : install ? 'Keep Fit Log close. Install it on this device.' : 'Fit Log is ready to open offline.'}</p>
+    <p>{needRefresh ? 'An update is ready. Save your entries before reloading.' : install ? 'Keep Fitness Journey close. Install it on this device.' : 'Fitness Journey is ready to open offline.'}</p>
     <div>{needRefresh ? <button className="text-button" onClick={() => void updateServiceWorker(true)}>Reload app</button> : install ? <button className="text-button" onClick={async () => { await install.prompt(); await install.userChoice; setInstall(null); }}>Install</button> : null}<button className="text-button muted" onClick={() => { setNeedRefresh(false); setOfflineReady(false); setInstall(null); }}>Dismiss</button></div>
   </aside>;
 }

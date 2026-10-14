@@ -1,4 +1,4 @@
-# Fit Log
+# Fitness Journey
 
 A desktop-first fitness journal with Body and Nutrition routes, responsive phone input, Google accounts, and offline entry. Built with React, TypeScript, Vite, Supabase, IndexedDB, and lightweight SVG charts.
 
@@ -44,6 +44,7 @@ The browser tests use the explicitly labeled local demo. To check the backend af
 - Body entries store weight, optional measurements, optional complete three-site calipers, and the calculated body-fat estimate. Age is calculated on the entry date. Changing a profile later does not recalculate saved body-fat history.
 - Nutrition uses the latest dated weight and current profile. History differences and the dashed calorie target line use the **current** target. Macros are rounded for display only.
 - Dates are local calendar dates, never converted from a UTC timestamp. The database permits a one-day timezone margin; the form rejects dates after local today.
+- The original browser storage identifiers and initial SQL migration filename remain stable for compatibility with existing installations.
 - IndexedDB stores each account's records and a durable pending-write queue. Writes update the visible app only after local storage succeeds. Repeated saves of a date replace that entry. Failed uploads remain queued and retry on reconnection, focus, every 30 seconds while pending, or **Retry**.
 - The queue prioritizes the profile before dependent entries. An edit made while an older save uploads remains pending until that newer revision is acknowledged. The server uses last-received-save behavior for the same account/date; it does not merge fields across devices.
 - Sign-out hides account data and stops further queued uploads. Local records and pending saves remain on this device and are loaded only when that account signs in again. The sidebar shows pending changes before sign-out. Returning to an account after sign-out requires online authentication; an already signed-in account with cached data can log offline. An expired session may need online reauthentication to reopen the app or sync.
