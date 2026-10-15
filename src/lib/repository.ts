@@ -1,5 +1,5 @@
 import { openDB } from 'idb';
-import { emptySnapshot, type BodyEntry, type FoodDay, type PendingWrite, type Profile, type Records, type Snapshot } from './types';
+import { emptySnapshot, type BodyEntry, type CycleEntry, type FoodDay, type PendingWrite, type Profile, type Records, type Snapshot } from './types';
 
 export interface Storage {
   load(accountId: string): Promise<Snapshot | undefined>;
@@ -30,6 +30,7 @@ function database() {
 function apply(records: Records, write: PendingWrite): Records {
   if (write.table === 'profiles') return { ...records, profile: write.record };
   if (write.table === 'body_entries') return { ...records, body: [...records.body.filter(x => x.date !== write.record.date), write.record].sort((a, b) => b.date.localeCompare(a.date)) };
+  if (write.table === 'cycle_entries') return { ...records, cycles: [ ...records.cycles.filter(x => x.id !== write.record.id), ...(write.deleted ? [] : [write.record]) ].sort((a, b) => b.start_date.localeCompare(a.start_date)) };
   return { ...records, food: [...records.food.filter(x => x.date !== write.record.date), write.record].sort((a, b) => b.date.localeCompare(a.date)) };
 }
 
@@ -42,7 +43,7 @@ export class Repository {
   constructor(readonly accountId: string, private storage: Storage, private remote: Remote | null, private changed: (snapshot: Snapshot) => void = () => {}) {}
 
   async load() {
-    this.snapshot = await this.storage.load(this.accountId) ?? emptySnapshot();
+    this.snapshot = { ...emptySnapshot(), ...await this.storage.load(this.accountId) };
     if (!this.stopped) this.changed(this.snapshot);
   }
   stop() { this.stopped = true; }
@@ -64,12 +65,14 @@ export class Repository {
   saveProfile(record: Profile) { return this.write({ table: 'profiles', record, key: 'profile', revision: crypto.randomUUID() }); }
   saveBody(record: BodyEntry) { return this.write({ table: 'body_entries', record, key: `body:${record.date}`, revision: crypto.randomUUID() }); }
   saveFood(record: FoodDay) { return this.write({ table: 'food_days', record, key: `food:${record.date}`, revision: crypto.randomUUID() }); }
+  saveCycle(record: CycleEntry) { return this.write({ table: 'cycle_entries', record, key: `cycle:${record.id}`, revision: crypto.randomUUID() }); }
+  deleteCycle(record: CycleEntry) { return this.write({ table: 'cycle_entries', record, deleted: true, key: `cycle:${record.id}`, revision: crypto.randomUUID() }); }
 
   private write(write: PendingWrite): Promise<void> {
     const owner = write.table === 'profiles' ? write.record.id : write.record.account_id;
     if (owner !== this.accountId) return Promise.reject(new Error('This record belongs to a different account.'));
     return this.mutate(current => ({
-      ...apply(current, write),
+      ...apply({ ...emptySnapshot(), ...current }, write),
       pending: this.remote ? [...current.pending.filter(x => x.key !== write.key), write] : [],
     }));
   }

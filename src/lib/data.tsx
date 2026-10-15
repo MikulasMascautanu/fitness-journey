@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { browserStorage, Repository } from './repository';
 import { remote } from './remote';
-import { emptySnapshot, type BodyEntry, type FoodDay, type Profile, type Snapshot } from './types';
+import { emptySnapshot, type BodyEntry, type CycleEntry, type FoodDay, type Profile, type Snapshot } from './types';
 import { demoSnapshot } from './demo';
 
 type Data = Snapshot & {
@@ -9,6 +9,8 @@ type Data = Snapshot & {
   saveProfile(profile: Profile): Promise<void>;
   saveBody(entry: BodyEntry): Promise<void>;
   saveFood(entry: FoodDay): Promise<void>;
+  saveCycle(entry: CycleEntry): Promise<void>;
+  deleteCycle(entry: CycleEntry): Promise<void>;
   sync(): Promise<void>;
 };
 const Context = createContext<Data | null>(null);
@@ -69,6 +71,8 @@ export function DataProvider({ accountId, demo, children }: { accountId: string;
     saveProfile: profile => save(repo => repo.saveProfile(profile)),
     saveBody: entry => save(repo => repo.saveBody(entry)),
     saveFood: entry => save(repo => repo.saveFood(entry)),
+    saveCycle: entry => save(repo => repo.saveCycle(entry)),
+    deleteCycle: entry => save(repo => repo.deleteCycle(entry)),
   }}>{children}</Context.Provider>;
 }
 

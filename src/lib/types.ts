@@ -21,6 +21,12 @@ export type BodyEntry = {
   skinfold_2_mm: number | null;
   skinfold_3_mm: number | null;
 } & Record<Measurement, number | null>;
+export type CycleEntry = {
+  id: string;
+  account_id: string;
+  start_date: string;
+  end_date: string | null;
+};
 export type FoodDay = {
   id: string;
   account_id: string;
@@ -34,7 +40,8 @@ export type PendingWrite = (
   | { table: 'profiles'; record: Profile }
   | { table: 'body_entries'; record: BodyEntry }
   | { table: 'food_days'; record: FoodDay }
+  | { table: 'cycle_entries'; record: CycleEntry; deleted?: boolean }
 ) & { key: string; revision: string };
-export type Records = { profile: Profile | null; body: BodyEntry[]; food: FoodDay[] };
+export type Records = { profile: Profile | null; body: BodyEntry[]; food: FoodDay[]; cycles: CycleEntry[] };
 export type Snapshot = Records & { pending: PendingWrite[] };
-export const emptySnapshot = (): Snapshot => ({ profile: null, body: [], food: [], pending: [] });
+export const emptySnapshot = (): Snapshot => ({ profile: null, body: [], food: [], cycles: [], pending: [] });

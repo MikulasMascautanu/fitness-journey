@@ -10,6 +10,7 @@ import {
 import { errorMessage, useData } from "../lib/data";
 import { measurements, type BodyEntry, type Measurement } from "../lib/types";
 import { LineChart } from "./Charts";
+import { CycleLog } from "./CycleLog";
 import { Field, Notice } from "./Fields";
 import { Icon } from "./Icon";
 
@@ -47,8 +48,9 @@ export const signed = (value: number, digits = 1) =>
 	`${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(digits)}`;
 
 export function Body() {
-	const { body, profile, accountId, saveBody } = useData();
+	const { body, cycles, profile, accountId, saveBody } = useData();
 	const [metric, setMetric] = useState<Metric>("weight_kg");
+	const [showCycles, setShowCycles] = useState(false);
 	const [date, setDate] = useState(localDate());
 	const [draft, setDraft] = useState(() =>
 		draftFor(body.find((x) => x.date === localDate())),
@@ -212,7 +214,24 @@ export function Body() {
 						</button>
 					))}
 				</div>
-				<LineChart points={points} label={selected.label} unit={selected.unit} />
+				{profile!.sex === "f" && metric === "weight_kg" && (
+					<label className="cycle-toggle">
+						<input
+							type="checkbox"
+							checked={showCycles}
+							onChange={(event) => setShowCycles(event.target.checked)}
+						/>
+						Show period days on chart
+					</label>
+				)}
+				<LineChart
+					points={points}
+					label={selected.label}
+					unit={selected.unit}
+					periods={
+						profile!.sex === "f" && metric === "weight_kg" && showCycles ? cycles : []
+					}
+				/>
 				<div className="chart-caption">
 					<span>
 						<i className="legend-dot" />
@@ -222,6 +241,12 @@ export function Body() {
 						{points.length} {points.length === 1 ? "entry" : "entries"}
 					</span>
 				</div>
+				{profile!.sex === "f" && metric === "weight_kg" && showCycles && (
+					<p className="cycle-legend">
+						<i />
+						Shaded areas show logged period days. Unlogged days have no cycle shading.
+					</p>
+				)}
 			</section>
 			<section className="card">
 				<div className="card-heading">
@@ -392,6 +417,7 @@ export function Body() {
 					</p>
 				)}
 			</section>
+			{profile!.sex === "f" && <CycleLog />}
 		</>
 	);
 }
