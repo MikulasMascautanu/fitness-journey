@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
 	ageOn,
 	bodyFat,
@@ -47,7 +47,7 @@ function draftFor(entry?: BodyEntry): Draft {
 export const signed = (value: number, digits = 1) =>
 	`${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(digits)}`;
 
-export function Body() {
+export function Body({ syncStatus }: { syncStatus: ReactNode }) {
 	const { body, cycles, profile, accountId, saveBody } = useData();
 	const [metric, setMetric] = useState<Metric>("weight_kg");
 	const [showCycles, setShowCycles] = useState(false);
@@ -154,16 +154,18 @@ export function Body() {
 		<>
 			<div className="page-heading">
 				<div>
-					<p className="eyebrow">YOUR PROGRESS</p>
 					<h1>Body</h1>
 				</div>
-				<span className="heading-icon">
-					<Icon name="body" size={26} />
-				</span>
+				<div className="heading-actions">
+					{syncStatus}
+					<span className="heading-icon">
+						<Icon name="body" size={26} />
+					</span>
+				</div>
 			</div>
 			<section className="card summary-card" aria-label="Body summary">
 				<div className="summary-primary">
-					<span className="stat-label">Current weight</span>
+					<span className="stat-label summary-label">Current weight</span>
 					<div className="big-number">
 						{latest?.weight_kg.toFixed(1) ?? "—"}
 						<span>kg</span>

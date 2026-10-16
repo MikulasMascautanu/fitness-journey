@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import {
 	activities,
@@ -32,7 +32,7 @@ function draftFor(entry?: FoodDay): FoodDraft {
 	) as FoodDraft;
 }
 
-export function Nutrition() {
+export function Nutrition({ syncStatus }: { syncStatus: ReactNode }) {
 	const { profile, body, food, saveFood, accountId } = useData();
 	const [date, setDate] = useState(localDate());
 	const [draft, setDraft] = useState(() =>
@@ -45,14 +45,11 @@ export function Nutrition() {
 	const formRef = useRef<HTMLFormElement>(null);
 	const latestWeight = body[0]?.weight_kg;
 	const existing = food.find((entry) => entry.date === date);
-	let target: ReturnType<typeof nutrition> | undefined,
-		targetError = "";
+	let target: ReturnType<typeof nutrition> | undefined;
 	if (latestWeight) {
 		try {
 			target = nutrition(profile!, latestWeight);
-		} catch (error) {
-			targetError = errorMessage(error);
-		}
+		} catch {}
 	}
 	const macroEnergy =
 		Number(draft.protein_g) * 4 +
@@ -112,98 +109,15 @@ export function Nutrition() {
 		<>
 			<div className="page-heading">
 				<div>
-					<p className="eyebrow">YOUR DAILY FUEL</p>
 					<h1>Nutrition</h1>
 				</div>
-				<span className="heading-icon">
-					<Icon name="nutrition" size={26} />
-				</span>
-			</div>
-			<section className="card target-card" aria-label="Daily nutrition target">
-				<div className="target-top">
-					<div>
-						<span className="stat-label">Daily target</span>
-						<div className="big-number">
-							{target ? Math.round(target.kcal).toLocaleString() : "—"}
-							<span>kcal</span>
-						</div>
-						<span className="stat-caption">
-							{target
-								? goalLabel(profile!.goal_kg_per_week, target.tdee)
-								: "Personalized to your profile and latest weight"}
-						</span>
-					</div>
-					<div className="energy-stats">
-						<div>
-							<span className="stat-label">
-								Maintenance <abbr title="Total daily energy expenditure">TDEE</abbr>
-							</span>
-							<strong>
-								{target ? Math.round(target.tdee).toLocaleString() : "—"}{" "}
-								<small>kcal</small>
-							</strong>
-						</div>
-						<div>
-							<span className="stat-label">
-								Resting <abbr title="Basal metabolic rate">BMR</abbr>
-							</span>
-							<strong>
-								{target ? Math.round(target.bmr).toLocaleString() : "—"}{" "}
-								<small>kcal</small>
-							</strong>
-						</div>
-					</div>
+				<div className="heading-actions">
+					{syncStatus}
+					<span className="heading-icon">
+						<Icon name="nutrition" size={26} />
+					</span>
 				</div>
-				{target && (
-					<>
-						<div className="macro-bar" aria-hidden="true">
-							<span
-								className="protein"
-								style={{ width: `${((target.protein * 4) / target.kcal) * 100}%` }}
-							/>
-							<span
-								className="carbs"
-								style={{ width: `${((target.carbs * 4) / target.kcal) * 100}%` }}
-							/>
-							<span className="fat" style={{ width: `${profile!.fat_pct}%` }} />
-						</div>
-						<div className="macro-grid">
-							{[
-								{ name: "Protein", key: "protein" },
-								{ name: "Carbs", key: "carbs" },
-								{ name: "Fat", key: "fat" },
-							].map(({ name, key }) => (
-								<div key={key}>
-									<span className="stat-label">
-										<i className={`macro-dot ${key}`} />
-										{name}
-									</span>
-									<strong>
-										{Math.round(target![key as "protein" | "carbs" | "fat"])}
-										<small> g</small>
-									</strong>
-								</div>
-							))}
-						</div>
-						<p className="target-basis">
-							Based on {latestWeight} kg ·{" "}
-							{activities
-								.find((a) => a.value === profile!.activity)
-								?.label.toLowerCase()}{" "}
-							activity · Mifflin–St Jeor
-						</p>
-					</>
-				)}
-				{!latestWeight && (
-					<Notice>
-						<NavLink to="/">Log your first weight</NavLink> to calculate your daily
-						calories and macros.
-					</Notice>
-				)}
-				{targetError && (
-					<Notice error>{targetError} Adjust your plan below.</Notice>
-				)}
-			</section>
+			</div>
 			<PlanSettings
 				key={JSON.stringify(profile)}
 				profile={profile!}
@@ -393,7 +307,7 @@ function PlanSettings({
 			previewError = errorMessage(error);
 		}
 	}
-	const [expanded, setExpanded] = useState(Boolean(previewError));
+	const [expanded, setExpanded] = useState(true);
 	function update<K extends keyof Profile>(key: K, value: Profile[K]) {
 		setSettings((current) => ({ ...current, [key]: value }));
 		setError("");
@@ -418,132 +332,235 @@ function PlanSettings({
 			setBusy(false);
 		}
 	}
+	const target = preview;
 	return (
-		<details
-			className="card plan-card"
-			open={expanded}
-			onToggle={(event) => setExpanded(event.currentTarget.open)}
-		>
-			<summary>
-				<span>
-					<strong>Your plan</strong>
-					<span>
-						{goalLabel(profile.goal_kg_per_week, tdee)} ·{" "}
-						{activities.find((a) => a.value === profile.activity)?.label} activity
-					</span>
-				</span>
-				<span className="text-button">
-					Adjust <span aria-hidden="true">⌄</span>
-				</span>
-			</summary>
-			<form onSubmit={submit} className="plan-form">
-				<SelectField
-					label="Activity level"
-					value={draft.activity}
-					onChange={(e) =>
-						update("activity", Number(e.target.value) as Profile["activity"])
-					}
-				>
-					{activities.map((a) => (
-						<option key={a.value} value={a.value}>
-							{a.label} — {a.detail}
-						</option>
-					))}
-				</SelectField>
-				<fieldset className="goal-fieldset">
-					<legend>Weekly goal</legend>
-					<div className="goal-options">
-						{goals.map((goal) => {
-							const percentage = tdee
-								? Math.round(((goal * 1100) / tdee) * 100)
-								: null;
-							return (
-								<label
-									key={goal}
-									className={draft.goal_kg_per_week === goal ? "selected" : ""}
-								>
-									<input
-										type="radio"
-										name="weekly-goal"
-										value={goal}
-										checked={draft.goal_kg_per_week === goal}
-										onChange={() => update("goal_kg_per_week", goal)}
-									/>
-									<strong>
-										{goal === 0 ? "Maintain" : `${goal > 0 ? "+" : "−"}${Math.abs(goal)}`}
-									</strong>
-									<span>{goal === 0 ? "0 kg/wk" : "kg/week"}</span>
-									<small>
-										{percentage === null
-											? "—"
-											: `${percentage > 0 ? "+" : ""}${percentage}%`}
-									</small>
-								</label>
-							);
-						})}
-					</div>
-					<p className="form-note">
-						Percentages are relative to your maintenance calories.
-					</p>
-				</fieldset>
-				<div className="form-grid">
-					{[
-						{ label: "Protein target", value: protein, setValue: setProtein, min: 0.1, max: 5, step: 0.1, unit: "g/kg", presets: [1.6, 2, 2.4] },
-						{ label: "Fat target", value: fat, setValue: setFat, min: 15, max: 30, step: 1, unit: "%", presets: [20, 25, 30] },
-					].map(({ label, value, setValue, min, max, step, unit, presets }) => (
-						<div key={label}>
-							<Field
-								label={label}
-								unit={unit}
-								type="number"
-								inputMode={step < 1 ? "decimal" : "numeric"}
-								min={min}
-								max={max}
-								step={step}
-								required
-								value={value}
-								onChange={(e) => {
-									setValue(e.target.value);
-									setError("");
-								}}
-							/>
-							<div className="target-presets" role="group" aria-label={`${label} presets`}>
-								{presets.map((preset) => (
-									<button
-										key={preset}
-										type="button"
-										className="text-button"
-										aria-pressed={Number(value) === preset}
-										onClick={() => {
-											setValue(String(preset));
-											setError("");
-										}}
-									>
-										{preset} {unit}
-									</button>
-								))}
-							</div>
+		<>
+			<section
+				className="card target-card"
+				aria-label="Live daily nutrition target"
+				aria-live="polite"
+			>
+				<div className="target-top">
+					<div>
+						<span className="stat-label target-label">Live daily target</span>
+						<div className="big-number">
+							{target ? Math.round(target.kcal).toLocaleString() : "—"}
+							<span>kcal</span>
 						</div>
-					))}
-				</div>
-				{previewError && <Notice error>{previewError}</Notice>}
-				{error && <Notice error>{error}</Notice>}
-				<div className="form-footer">
-					<span className="muted">
-						{changed && preview
-							? `Preview: ${Math.round(preview.kcal).toLocaleString()} kcal · P ${Math.round(preview.protein)} / C ${Math.round(preview.carbs)} / F ${Math.round(preview.fat)} g`
-							: "Carbs fill the remaining calories."}
-					</span>
-					<div className="plan-actions">
-						<button type="button" className="button secondary" onClick={cancel} disabled={busy || !changed}>
-							Cancel
-						</button>
-						<button className="button primary" disabled={busy || !changed}>
-							{busy ? "Saving…" : "Save targets"}
-						</button>
+						<span className="stat-caption">
+							{target
+								? goalLabel(draft.goal_kg_per_week, target.tdee)
+								: "Personalized to your profile and latest weight"}
+						</span>
+					</div>
+					<div className="energy-stats">
+						<div>
+							<span className="stat-label">
+								Maintenance <abbr title="Total daily energy expenditure">TDEE</abbr>
+							</span>
+							<strong>
+								{target ? Math.round(target.tdee).toLocaleString() : "—"}{" "}
+								<small>kcal</small>
+							</strong>
+						</div>
+						<div>
+							<span className="stat-label">
+								Resting <abbr title="Basal metabolic rate">BMR</abbr>
+							</span>
+							<strong>
+								{target ? Math.round(target.bmr).toLocaleString() : "—"}{" "}
+								<small>kcal</small>
+							</strong>
+						</div>
 					</div>
 				</div>
-			</form>
-		</details>
+				{target && (
+					<>
+						<div className="macro-bar" aria-hidden="true">
+							<span
+								className="protein"
+								style={{ width: `${((target.protein * 4) / target.kcal) * 100}%` }}
+							/>
+							<span
+								className="carbs"
+								style={{ width: `${((target.carbs * 4) / target.kcal) * 100}%` }}
+							/>
+							<span className="fat" style={{ width: `${draft.fat_pct}%` }} />
+						</div>
+						<div className="macro-grid">
+							{[
+								{ name: "Protein", key: "protein" },
+								{ name: "Carbs", key: "carbs" },
+								{ name: "Fat", key: "fat" },
+							].map(({ name, key }) => (
+								<div key={key}>
+									<span className="stat-label">
+										<i className={`macro-dot ${key}`} />
+										{name}
+									</span>
+									<strong>
+										{Math.round(target![key as "protein" | "carbs" | "fat"])}
+										<small> g</small>
+									</strong>
+								</div>
+							))}
+						</div>
+					</>
+				)}
+				{!weight && (
+					<Notice>
+						<NavLink to="/">Log your first weight</NavLink> to calculate your daily
+						calories and macros.
+					</Notice>
+				)}
+				{previewError && (
+					<Notice error>{previewError} Adjust your plan below.</Notice>
+				)}
+			</section>
+			<details
+				className="card plan-card"
+				open={expanded}
+				onToggle={(event) => setExpanded(event.currentTarget.open)}
+			>
+				<summary>
+					<span>
+						<strong>Your plan</strong>
+					</span>
+					<span className="text-button">
+						{expanded ? "Hide" : "Adjust"} <span aria-hidden="true">⌄</span>
+					</span>
+				</summary>
+				<form onSubmit={submit} className="plan-form">
+					<SelectField
+						label="Activity level"
+						value={draft.activity}
+						onChange={(e) =>
+							update("activity", Number(e.target.value) as Profile["activity"])
+						}
+					>
+						{activities.map((a) => (
+							<option key={a.value} value={a.value}>
+								{a.label} — {a.detail}
+							</option>
+						))}
+					</SelectField>
+					<fieldset className="goal-fieldset">
+						<legend>Weekly goal</legend>
+						<div className="goal-options">
+							{goals.map((goal) => {
+								const percentage = tdee
+									? Math.round(((goal * 1100) / tdee) * 100)
+									: null;
+								return (
+									<label
+										key={goal}
+										className={draft.goal_kg_per_week === goal ? "selected" : ""}
+									>
+										<input
+											type="radio"
+											name="weekly-goal"
+											value={goal}
+											checked={draft.goal_kg_per_week === goal}
+											onChange={() => update("goal_kg_per_week", goal)}
+										/>
+										<strong>
+											{goal === 0
+												? "Maintain"
+												: `${goal > 0 ? "+" : "−"}${Math.abs(goal)} kg/wk`}
+										</strong>
+										<small>
+											{percentage === null
+												? "—"
+												: `${percentage > 0 ? "+" : ""}${percentage}%`}
+										</small>
+									</label>
+								);
+							})}
+						</div>
+						<p className="form-note">
+							Percentages are relative to your maintenance calories.
+						</p>
+					</fieldset>
+					<div className="form-grid">
+						{[
+							{
+								label: "Protein target",
+								value: protein,
+								setValue: setProtein,
+								min: 0.1,
+								max: 5,
+								step: 0.1,
+								unit: "g/kg",
+								presets: [1.6, 2, 2.4],
+							},
+							{
+								label: "Fat target",
+								value: fat,
+								setValue: setFat,
+								min: 15,
+								max: 30,
+								step: 1,
+								unit: "%",
+								presets: [20, 25, 30],
+							},
+						].map(({ label, value, setValue, min, max, step, unit, presets }) => (
+							<div key={label}>
+								<Field
+									label={label}
+									unit={unit}
+									type="number"
+									inputMode={step < 1 ? "decimal" : "numeric"}
+									min={min}
+									max={max}
+									step={step}
+									required
+									value={value}
+									onChange={(e) => {
+										setValue(e.target.value);
+										setError("");
+									}}
+								/>
+								<div
+									className="target-presets"
+									role="group"
+									aria-label={`${label} presets`}
+								>
+									{presets.map((preset) => (
+										<button
+											key={preset}
+											type="button"
+											className="text-button"
+											aria-pressed={Number(value) === preset}
+											onClick={() => {
+												setValue(String(preset));
+												setError("");
+											}}
+										>
+											{preset} {unit}
+										</button>
+									))}
+								</div>
+							</div>
+						))}
+					</div>
+					{error && <Notice error>{error}</Notice>}
+					<div className="form-footer">
+						<div className="plan-actions">
+							<button
+								type="button"
+								className="button secondary"
+								onClick={cancel}
+								disabled={busy || !changed}
+							>
+								Cancel
+							</button>
+							<button className="button primary" disabled={busy || !changed}>
+								{busy ? "Saving…" : "Save targets"}
+							</button>
+						</div>
+					</div>
+				</form>
+			</details>
+		</>
 	);
 }

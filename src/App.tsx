@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
 import { DataProvider, errorMessage, useData } from "./lib/data";
@@ -212,6 +212,21 @@ function Shell({
 	} = useData();
 	const [logoutError, setLogoutError] = useState("");
 	const [signingOut, setSigningOut] = useState(false);
+	const { pathname } = useLocation();
+	const syncStatus = (
+		<span className="sync-status" role="status">
+			<i className={online ? "" : "offline"} />
+			{demo
+				? "Demo · saved on this device"
+				: !online
+					? "Offline · saving on this device"
+					: syncing
+						? "Syncing…"
+						: pending.length
+							? `${pending.length} pending`
+							: "Up to date"}
+		</span>
+	);
 	async function logout() {
 		setSigningOut(true);
 		setLogoutError("");
@@ -231,7 +246,6 @@ function Shell({
 			<aside className="sidebar">
 				<NavLink className="brand" to="/">
 					Fitness Journey
-					<span className="brand-dot" />
 				</NavLink>
 				<span className="nav-caption">{formatDate(localDate(), true)}</span>
 				<nav aria-label="Main navigation">
@@ -272,21 +286,9 @@ function Shell({
 				</div>
 			</aside>
 			<main className="main-content" id="main">
-				<div className="topline">
-					<span>{formatDate(localDate(), true)}</span>
-					<span className="sync-status" role="status">
-						<i className={online ? "" : "offline"} />
-						{demo
-							? "Demo · saved on this device"
-							: !online
-								? "Offline · saving on this device"
-								: syncing
-									? "Syncing…"
-									: pending.length
-										? `${pending.length} pending`
-										: "Up to date"}
-					</span>
-				</div>
+				{((pathname !== "/nutrition" && pathname !== "/") || !profile) && (
+					<div className="topline">{syncStatus}</div>
+				)}
 				{syncError && (
 					<div className="notice error" role="alert">
 						Couldn’t sync: {syncError}{" "}
@@ -319,8 +321,11 @@ function Shell({
 					<ProfileForm />
 				) : (
 					<Routes>
-						<Route path="/" element={<Body />} />
-						<Route path="/nutrition" element={<Nutrition />} />
+						<Route path="/" element={<Body syncStatus={syncStatus} />} />
+						<Route
+							path="/nutrition"
+							element={<Nutrition syncStatus={syncStatus} />}
+						/>
 						<Route path="/account" element={<ProfileForm />} />
 						<Route
 							path="*"
@@ -333,9 +338,7 @@ function Shell({
 						/>
 					</Routes>
 				)}
-				<footer className="page-footer">
-					FITNESS JOURNEY <span>A little every day goes a long way.</span>
-				</footer>
+				<footer className="page-footer">FITNESS JOURNEY</footer>
 			</main>
 		</div>
 	);

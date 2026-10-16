@@ -35,7 +35,6 @@ test('body logging, same-date overwrite, and reload persistence', async ({ page 
 test('nutrition settings and daily logging persist', async ({ page }) => {
   await demo(page);
   await page.getByRole('link', { name: 'Nutrition', exact: true }).click();
-  await page.locator('.plan-card summary').click();
   await page.getByLabel('Activity level').selectOption('1.2');
   await page.locator('input[name="weekly-goal"][value="0"]').check();
   await page.getByRole('button', { name: 'Save targets' }).click();
@@ -51,12 +50,27 @@ test('nutrition settings and daily logging persist', async ({ page }) => {
   await expect(page.locator('.target-card .stat-caption')).toHaveText('Maintain (0%)');
 });
 
+test('nutrition target and plan fit in the initial desktop view', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await demo(page);
+  await page.getByRole('link', { name: 'Nutrition', exact: true }).click();
+  await expect(page.locator('.plan-card')).toHaveAttribute('open');
+  const target = await page.locator('.target-card').boundingBox();
+  const plan = await page.locator('.plan-card').boundingBox();
+  expect(target).not.toBeNull();
+  expect(plan).not.toBeNull();
+  expect(target!.y).toBeGreaterThanOrEqual(0);
+  expect(plan!.y + plan!.height).toBeLessThanOrEqual(900);
+});
+
 test('custom macro targets validate, preview, and persist', async ({ page }) => {
   await demo(page);
   await page.getByRole('link', { name: 'Nutrition', exact: true }).click();
-  await page.locator('.plan-card summary').click();
   const protein = page.getByRole('spinbutton', { name: 'Protein target', exact: true });
   const fat = page.getByRole('spinbutton', { name: 'Fat target', exact: true });
+  const liveProtein = page.locator('.target-card .macro-grid>div').first().locator('strong');
+  const originalProtein = await liveProtein.textContent();
   await protein.fill('');
   await fat.fill('14');
   await page.getByRole('button', { name: 'Save targets' }).click();
@@ -65,11 +79,12 @@ test('custom macro targets validate, preview, and persist', async ({ page }) => 
   await protein.fill('1.8');
   expect(await fat.evaluate((input: HTMLInputElement) => input.validity.rangeUnderflow)).toBe(true);
   await fat.fill('15');
-  await expect(page.locator('.plan-form .form-footer')).toContainText('Preview:');
+  await expect(liveProtein).not.toHaveText(originalProtein!);
+  await expect(page.locator('.target-card .macro-bar .fat')).toHaveAttribute('style', 'width: 15%;');
   await page.getByRole('button', { name: 'Save targets' }).click();
+  await expect(page.getByRole('button', { name: 'Save targets' })).toBeDisabled();
   await expect(page.locator('.macro-bar .fat')).toHaveAttribute('style', 'width: 15%;');
   await page.reload();
-  await page.locator('.plan-card summary').click();
   await expect(protein).toHaveValue('1.8');
   await expect(fat).toHaveValue('15');
   await page.getByRole('group', { name: 'Protein target presets', exact: true }).getByRole('button', { name: '2.4 g/kg', exact: true }).click();
@@ -79,7 +94,6 @@ test('custom macro targets validate, preview, and persist', async ({ page }) => 
   await page.getByRole('button', { name: 'Save targets' }).click();
   await expect(page.locator('.macro-bar .fat')).toHaveAttribute('style', 'width: 23%;');
   await page.reload();
-  await page.locator('.plan-card summary').click();
   await expect(protein).toHaveValue('2.5');
   await expect(fat).toHaveValue('23');
 });
@@ -92,11 +106,10 @@ test('plan stays open when presets restore saved targets', async ({ page }) => {
   const proteinPresets = page.getByRole('group', { name: 'Protein target presets', exact: true });
   const fatPresets = page.getByRole('group', { name: 'Fat target presets', exact: true });
   const save = page.getByRole('button', { name: 'Save targets' });
-  await summary.click();
+  await expect(plan).toHaveAttribute('open');
   await proteinPresets.getByRole('button', { name: '2.4 g/kg', exact: true }).click();
   await save.click();
-  await expect(plan).not.toHaveAttribute('open');
-  await summary.click();
+  await expect(plan).toHaveAttribute('open');
   await proteinPresets.getByRole('button', { name: '1.6 g/kg', exact: true }).click();
   await expect(save).toBeEnabled();
   await proteinPresets.getByRole('button', { name: '2.4 g/kg', exact: true }).click();

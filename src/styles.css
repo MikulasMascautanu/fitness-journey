@@ -93,6 +93,9 @@ input::placeholder { color: var(--muted); opacity: .65; }
 @media (max-width: 380px) { .form-grid, .form-grid.three { grid-template-columns: 1fr; } nav a { gap: 6px; padding: 8px; } .main-content { padding-left: 14px; padding-right: 14px; } .card { padding: 16px; } }
 :root { --bar: #88a27b; --bar-muted: #d1d9ca; }
 .page-heading { display: flex; justify-content: space-between; align-items: flex-start; }
+.heading-actions { display: flex; align-items: center; gap: 16px; }
+.heading-actions .sync-status { color: var(--muted); font-size: 11px; white-space: nowrap; }
+@media (max-width: 480px) { .page-heading { flex-wrap: wrap; gap: 8px; } .heading-actions { margin-left: auto; } }
 .heading-icon { color: var(--accent); padding: 12px; border: 1px solid var(--border); border-radius: 11px; margin-top: 8px; }
 .summary-card { display: grid; grid-template-columns: 1fr 1.1fr; padding: 28px; }
 .stat-label { display: block; color: var(--muted); font-size: 11px; margin-bottom: 8px; }
@@ -167,30 +170,36 @@ abbr { text-decoration: none; cursor: help; }
 .macro-grid strong { font-size: 24px; font-weight: 500; letter-spacing: -.7px; }
 .macro-grid small { color: var(--muted); font-size: 12px; font-weight: 400; }
 .target-basis { margin: 21px 0 0; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 10px; }
+.target-card { padding: 16px 26px; margin-bottom: 12px; }
+.target-card .macro-bar { margin: 16px 0 14px; }
+.target-card .target-basis { margin-top: 14px; padding-top: 12px; }
 .plan-card { padding: 0; }
-.plan-card summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; cursor: pointer; padding: 20px 26px; list-style: none; }
+.plan-card summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; cursor: pointer; padding: 12px 26px; list-style: none; }
 .plan-card summary::-webkit-details-marker { display: none; }
 .plan-card summary>span:first-child { display: grid; gap: 6px; }
 .plan-card summary strong { font-size: 20px; font-weight: 600; }
 .plan-card summary>span:first-child>span { font-size: 10px; color: var(--muted); }
 .plan-card summary .text-button { font-size: 11px; white-space: nowrap; }
-.plan-form { padding: 0 26px 26px; }
+.plan-form { padding: 0 26px 16px; }
+.plan-form .form-footer { margin-top: 12px; }
+.plan-form>.form-footer { justify-content: flex-end; }
 .plan-actions { display: flex; gap: 10px; }
-.goal-fieldset { padding: 0; border: 0; margin: 22px 0; }
+.goal-fieldset { padding: 0; border: 0; margin: 10px 0; }
 .goal-fieldset legend { font-size: 12px; margin-bottom: 11px; }
 .goal-options { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
-.goal-options label { position: relative; display: grid; justify-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 7px; padding: 14px 4px; cursor: pointer; }
+.goal-options label { position: relative; display: grid; justify-items: center; align-content: center; gap: 5px; border: 1px solid var(--border); border-radius: 7px; padding: 9px 4px; cursor: pointer; }
 .goal-options input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
 .goal-options label:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
-.goal-options strong { font-size: 12px; font-weight: 600; }
+.goal-options strong { font-size: 12px; font-weight: 600; white-space: nowrap; }
 .goal-options span, .goal-options small { font-size: 9px; color: var(--muted); }
 .goal-options .selected { border-color: var(--accent); background: var(--soft); color: var(--accent); }
 .goal-options .selected small { color: var(--accent); }
 .legend-dash { display: inline-block; width: 14px; border-top: 1px dashed var(--accent); margin-left: 8px; }
 .macro-cell { font-size: 10px; color: var(--muted); }
 .difference { background: var(--soft); border-radius: 4px; padding: 5px 7px; color: var(--accent); font-size: 9px; }
-@media (max-width: 760px) { .target-top { gap: 20px; } .energy-stats { padding-left: 20px; } .plan-card summary { padding: 18px 20px; } .plan-form { padding: 0 20px 20px; } .chart-caption { flex-wrap: wrap; gap: 8px; } }
-@media (max-width: 480px) { .target-top { grid-template-columns: 1fr; } .energy-stats { border-left: 0; padding: 20px 0 0; border-top: 1px solid var(--border); grid-template-columns: 1fr 1fr; } .goal-options { gap: 5px; } .goal-options strong { font-size: 10px; } .goal-options span, .goal-options small { font-size: 8px; } .plan-card summary { align-items: flex-start; } .plan-card summary>span:first-child>span { max-width: 180px; line-height: 1.6; } }
+@media (max-width: 760px) { .target-top { gap: 20px; } .energy-stats { padding-left: 20px; } .plan-card summary { padding: 12px 20px; } .plan-form { padding: 0 20px 16px; } .chart-caption { flex-wrap: wrap; gap: 8px; } }
+@media (max-width: 480px) { .target-top { grid-template-columns: 1fr; } .energy-stats { border-left: 0; padding: 16px 0 0; border-top: 1px solid var(--border); grid-template-columns: 1fr 1fr; } .goal-options { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; } .plan-card summary { align-items: flex-start; } .plan-card summary>span:first-child>span { max-width: 180px; line-height: 1.6; } }
+@media (max-width: 380px) { .goal-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .pwa-notice { position: fixed; bottom: 18px; right: 18px; max-width: min(360px, calc(100vw - 36px)); border: 1px solid var(--border); border-radius: 10px; padding: 15px 18px; background: var(--surface); box-shadow: 0 4px 30px #0002; z-index: 10; }
 .pwa-notice p { font-size: 12px; margin: 0; }
 .pwa-notice>div { display: flex; gap: 20px; }
@@ -199,3 +208,4 @@ abbr { text-decoration: none; cursor: help; }
 .target-presets { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
 .target-presets button { min-height: 44px; }
 .target-presets button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 4px; }
+.card-heading h2, .target-label, .summary-label, .plan-card summary strong { font-family: inherit; color: var(--accent); font-size: 14px; font-weight: 700; letter-spacing: 1.8px; text-transform: uppercase; }
