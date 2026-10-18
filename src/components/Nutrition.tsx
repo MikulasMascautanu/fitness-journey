@@ -347,11 +347,6 @@ function PlanSettings({
 							{target ? Math.round(target.kcal).toLocaleString() : "—"}
 							<span>kcal</span>
 						</div>
-						<span className="stat-caption">
-							{target
-								? goalLabel(draft.goal_kg_per_week, target.tdee)
-								: "Personalized to your profile and latest weight"}
-						</span>
 					</div>
 					<div className="energy-stats">
 						<div>
@@ -444,104 +439,106 @@ function PlanSettings({
 							</option>
 						))}
 					</SelectField>
-					<fieldset className="goal-fieldset">
-						<legend>Weekly goal</legend>
-						<div className="goal-options">
-							{goals.map((goal) => {
-								const percentage = tdee
-									? Math.round(((goal * 1100) / tdee) * 100)
-									: null;
-								return (
-									<label
-										key={goal}
-										className={draft.goal_kg_per_week === goal ? "selected" : ""}
-									>
-										<input
-											type="radio"
-											name="weekly-goal"
-											value={goal}
-											checked={draft.goal_kg_per_week === goal}
-											onChange={() => update("goal_kg_per_week", goal)}
-										/>
-										<strong>
-											{goal === 0
-												? "Maintain"
-												: `${goal > 0 ? "+" : "−"}${Math.abs(goal)} kg/wk`}
-										</strong>
-										<small>
-											{percentage === null
-												? "—"
-												: `${percentage > 0 ? "+" : ""}${percentage}%`}
-										</small>
-									</label>
-								);
-							})}
-						</div>
-						<p className="form-note">
-							Percentages are relative to your maintenance calories.
-						</p>
-					</fieldset>
-					<div className="form-grid">
-						{[
-							{
-								label: "Protein target",
-								value: protein,
-								setValue: setProtein,
-								min: 0.1,
-								max: 5,
-								step: 0.1,
-								unit: "g/kg",
-								presets: [1.6, 2, 2.4],
-							},
-							{
-								label: "Fat target",
-								value: fat,
-								setValue: setFat,
-								min: 15,
-								max: 30,
-								step: 1,
-								unit: "%",
-								presets: [20, 25, 30],
-							},
-						].map(({ label, value, setValue, min, max, step, unit, presets }) => (
-							<div key={label}>
-								<Field
-									label={label}
-									unit={unit}
-									type="number"
-									inputMode={step < 1 ? "decimal" : "numeric"}
-									min={min}
-									max={max}
-									step={step}
-									required
-									value={value}
-									onChange={(e) => {
-										setValue(e.target.value);
-										setError("");
-									}}
-								/>
-								<div
-									className="target-presets"
-									role="group"
-									aria-label={`${label} presets`}
-								>
-									{presets.map((preset) => (
-										<button
-											key={preset}
-											type="button"
-											className="text-button"
-											aria-pressed={Number(value) === preset}
-											onClick={() => {
-												setValue(String(preset));
-												setError("");
-											}}
+					<div className="plan-layout">
+						<fieldset className="goal-fieldset">
+							<legend>Weekly goal</legend>
+							<div className="goal-options">
+								{goals.map((goal) => {
+									const percentage = tdee
+										? Math.round(((goal * 1100) / tdee) * 100)
+										: null;
+									return (
+										<label
+											key={goal}
+											className={draft.goal_kg_per_week === goal ? "selected" : ""}
 										>
-											{preset} {unit}
-										</button>
-									))}
-								</div>
+											<input
+												type="radio"
+												name="weekly-goal"
+												value={goal}
+												checked={draft.goal_kg_per_week === goal}
+												onChange={() => update("goal_kg_per_week", goal)}
+											/>
+											<strong>
+												{goal === 0
+													? "Maintain"
+													: `${goal > 0 ? "+" : "−"}${Math.abs(goal)} kg/wk`}
+											</strong>
+											<small>
+												{percentage === null
+													? "—"
+													: `${percentage > 0 ? "+" : ""}${percentage}%`}
+											</small>
+										</label>
+									);
+								})}
 							</div>
-						))}
+							<p className="form-note">
+								Percentages are relative to your maintenance calories.
+							</p>
+						</fieldset>
+						<div className="form-grid plan-targets">
+							{[
+								{
+									label: "Protein target",
+									value: protein,
+									setValue: setProtein,
+									min: 0.1,
+									max: 5,
+									step: 0.1,
+									unit: "g/kg",
+									presets: [1.6, 2, 2.4],
+								},
+								{
+									label: "Fat target",
+									value: fat,
+									setValue: setFat,
+									min: 15,
+									max: 30,
+									step: 1,
+									unit: "%",
+									presets: [20, 25, 30],
+								},
+							].map(({ label, value, setValue, min, max, step, unit, presets }) => (
+								<div key={label}>
+									<Field
+										label={label}
+										unit={unit}
+										type="number"
+										inputMode={step < 1 ? "decimal" : "numeric"}
+										min={min}
+										max={max}
+										step={step}
+										required
+										value={value}
+										onChange={(e) => {
+											setValue(e.target.value);
+											setError("");
+										}}
+									/>
+									<div
+										className="target-presets"
+										role="group"
+										aria-label={`${label} presets`}
+									>
+										{presets.map((preset) => (
+											<button
+												key={preset}
+												type="button"
+												className="text-button"
+												aria-pressed={Number(value) === preset}
+												onClick={() => {
+													setValue(String(preset));
+													setError("");
+												}}
+											>
+												{preset} {unit}
+											</button>
+										))}
+									</div>
+								</div>
+							))}
+						</div>
 					</div>
 					{error && <Notice error>{error}</Notice>}
 					<div className="form-footer">

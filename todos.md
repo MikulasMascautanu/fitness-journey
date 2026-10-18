@@ -14,7 +14,7 @@ TBD - very minor bug, ignore for now.
 
 4. [x] Refactor the "Your plan" card so that it's expanded by default. Move the live preview of kcal and macros to the top and make it bigger. The weekly goal mini cards' content need to be on 2 lines.
 
-5. I don't like the Activity level presets, they're too far apart, they shoudl be more flexible to one's real activities. E.g. if I do 3 weight training sessions a week, I'm exactky between Light and Moderate, while the calories of each presets differ greatly.
+5. I don't like the Activity level presets, they're too far apart, they shoudl be more flexible to one's real activities. E.g. if I do 3 weight training sessions a week, I'm exactky between Light and Moderate, while the calories of each presets differ greatly, affecting my progress. Firstly, research how this calorie count really works, I heard it's something like if I want to lose 0.25kg body fat a week, I need to have 0.25\*some_number\*7days calorie deficit in that week. Write this in a md file. Secondly, maybe there's a better way to track this in general. E.g. we coudl add new fields for activities - my average lifting session burnt kcal per hour + how long the session was, and also my burnt kcal for 5km, 7km and 10km runs. Then I would just fill out these for each week to see what really I do burn. Append this to the same md file. Use UI examples/graphs if suitable.
 
 # Features
 
