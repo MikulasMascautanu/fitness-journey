@@ -22,8 +22,8 @@ import { signed } from "./Body";
 const foodInputs = [
 	{ key: "kcal", label: "Calories", unit: "kcal", max: 20000 },
 	{ key: "protein_g", label: "Protein", unit: "g", max: 2000 },
-	{ key: "carbs_g", label: "Carbs", unit: "g", max: 3000 },
 	{ key: "fat_g", label: "Fat", unit: "g", max: 2000 },
+	{ key: "carbs_g", label: "Carbs", unit: "g", max: 3000 },
 ] as const;
 type FoodDraft = Record<(typeof foodInputs)[number]["key"], string>;
 function draftFor(entry?: FoodDay): FoodDraft {
@@ -150,7 +150,7 @@ export function Nutrition({ syncStatus }: { syncStatus: ReactNode }) {
 					<h2>{existing ? "Update your daily log" : "Log your day"}</h2>
 				</div>
 				<form className="entry-form" ref={formRef} onSubmit={submit}>
-					<div className="form-grid">
+					<div className="nutrition-log-grid">
 						<Field
 							label="Date"
 							type="date"
