@@ -18,7 +18,7 @@ Google authentication needs a configured Supabase project and Google OAuth provi
 
 - Store birthdate and derive age using calendar dates. Keep entry dates as local `YYYY-MM-DD` strings to avoid UTC date shifts.
 - A profile belongs to its authenticated user. Body and nutrition records use `(account_id, date)` uniqueness; saving an existing date updates that record. Database policies enforce account ownership on reads and writes.
-- Calculate body fat only with all three valid skinfold readings and a complete profile. Save the calculated percentage with the entry so later birthdays do not change historical results. Use age on the measurement date for backdated entries.
+- Calculate body fat only with all four valid Durnin–Womersley skinfold readings and a complete profile (updated by Improvement #6). Look up the published Table 9 percentage using sex and age on the measurement date; interpolate between rows and reject totals outside the published column range. Save the percentage and method marker so later birthdays do not change history. The database cleanup migration removes obsolete three-site caliper readings and estimates, keeping weight and circumference history. The one-time browser cleanup has been retired. Link the form to static male/female reference tables, available offline.
 - Nutrition targets use the latest dated body weight and the current profile. Display a clear missing-profile or missing-weight state instead of inventing data. Reject a macro configuration that leaves negative carbohydrate calories.
 - Use the current target for the nutrition chart and history differences, labeled accordingly. Render the last fourteen calendar days, including gaps where nothing was logged.
 - Cache records and offline writes under the authenticated account ID. Keep pending writes across reloads, retry when the application reconnects, and show whether changes are local or synced. The server applies the last successfully received save for a date.
@@ -29,7 +29,7 @@ Google authentication needs a configured Supabase project and Google OAuth provi
 
 1. Scaffold React, TypeScript, Vite, test tooling, and the responsive navigation shell.
 2. Add account profiles, Google authentication, database migrations/policies, and account-scoped persistence.
-3. Implement and test Jackson–Pollock/Siri and Mifflin–St Jeor, target, and macro calculations.
+3. Implement and test Durnin–Womersley Table 9 lookups and Mifflin–St Jeor, target, and macro calculations.
 4. Build the Body summary, entry form, live caliper preview, metric chart, and history.
 5. Build Nutrition settings, targets, goal percentages, daily logging, chart, and history.
 6. Add install assets, offline application loading, pending-write synchronization, and persistence tests.

@@ -30,14 +30,9 @@ Out of scope for v1: workout logging, food database / barcode scanning, social f
 - Measurements in cm (all optional): waist, chest, hips, arm, thigh, neck
 - Caliper skinfolds in mm, with live body fat % preview
 
-**Body fat formula**: Jackson-Pollock 3-site, then Siri.
+**Body fat method** (updated by Improvement #6): Durnin–Womersley 4-site percentage lookup using biceps, triceps, subscapular, and suprailiac for both sexes. Use the published male/female percentages from [Durnin & Womersley (1974), Table 9, p. 95](https://doi.org/10.1079/BJN19740060). Select the column from profile sex and age on the measurement date: male 17–29 or female 16–29, then 30–39, 40–49, 50+. The app accepts adults 18+.
 
-| Sex    | Sites                      | Density (D), S = sum of 3 sites in mm                     |
-| ------ | -------------------------- | --------------------------------------------------------- |
-| Male   | chest, abdomen, thigh      | `1.10938 - 0.0008267*S + 0.0000016*S^2 - 0.0002574*age`   |
-| Female | triceps, suprailiac, thigh | `1.0994921 - 0.0009929*S + 0.0000023*S^2 - 0.0001392*age` |
-
-`body fat % = 495 / D - 450`. Form labels for the 3 sites change with the account's sex.
+Use exact published values for table rows and linear interpolation for totals between rows. Reject totals outside the selected column's available range. Show the age band, total millimetres, interpolation when applicable, and a link to the [statically served tables](public/reference/durnin-womersley.html). Delete historical three-site skinfold readings and estimates, retaining weight and circumference measurements. Only four-site body-fat estimates are supported.
 
 **History list**: most recent entries (date, weight, body fat %, waist).
 
@@ -74,7 +69,7 @@ Out of scope for v1: workout logging, food database / barcode scanning, social f
 
 ```
 Account:  id, sex ('m'|'f'), age (or birthdate), height_cm, activity, protein_g_per_kg, fat_pct, goal_kg_per_week
-BodyEntry: id, account_id, date (unique per account), weight_kg, body_fat_pct?, skinfold_1_mm?, skinfold_2_mm?, skinfold_3_mm?, waist?, chest?, hips?, arm?, thigh?, neck?
+BodyEntry: id, account_id, date (unique per account), weight_kg, body_fat_pct?, body_fat_method?, skinfold_1_mm?, skinfold_2_mm?, skinfold_3_mm?, skinfold_4_mm?, waist?, chest?, hips?, arm?, thigh?, neck?
 FoodDay:  id, account_id, date (unique per account), kcal, protein_g, carbs_g, fat_g
 ```
 

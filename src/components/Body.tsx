@@ -1,13 +1,17 @@
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
 	ageOn,
-	bodyFat,
 	formatDate,
 	inRange,
 	isValidDate,
 	localDate,
 } from "../lib/calculations";
 import { errorMessage, useData } from "../lib/data";
+import {
+	skinfoldEstimate,
+	skinfoldMethod,
+	skinfoldSites,
+} from "../lib/skinfolds";
 import { measurements, type BodyEntry, type Measurement } from "../lib/types";
 import { LineChart } from "./Charts";
 import { CycleLog } from "./CycleLog";
@@ -29,7 +33,8 @@ type Draft = Record<
 	| Measurement
 	| "skinfold_1_mm"
 	| "skinfold_2_mm"
-	| "skinfold_3_mm",
+	| "skinfold_3_mm"
+	| "skinfold_4_mm",
 	string
 >;
 const inputs = [
@@ -38,6 +43,7 @@ const inputs = [
 	"skinfold_1_mm",
 	"skinfold_2_mm",
 	"skinfold_3_mm",
+	"skinfold_4_mm",
 ] as const;
 function draftFor(entry?: BodyEntry): Draft {
 	return Object.fromEntries(
@@ -72,13 +78,14 @@ export function Body({ syncStatus }: { syncStatus: ReactNode }) {
 		draft.skinfold_1_mm,
 		draft.skinfold_2_mm,
 		draft.skinfold_3_mm,
+		draft.skinfold_4_mm,
 	];
 	const hasSkinfolds = skinfolds.some(Boolean);
-	let estimate: number | null = null,
-		estimateError = "";
+	let estimate: ReturnType<typeof skinfoldEstimate> | null = null;
+	let estimateError = "";
 	if (skinfolds.every(Boolean)) {
 		try {
-			estimate = bodyFat(
+			estimate = skinfoldEstimate(
 				profile!.sex,
 				ageOn(profile!.birthdate, date),
 				skinfolds.map(Number),
@@ -87,10 +94,6 @@ export function Body({ syncStatus }: { syncStatus: ReactNode }) {
 			estimateError = errorMessage(error);
 		}
 	}
-	const sites =
-		profile!.sex === "m"
-			? ["Chest", "Abdomen", "Thigh"]
-			: ["Triceps", "Suprailiac", "Thigh"];
 	function changeDate(value: string) {
 		setDate(value);
 		setDraft(draftFor(body.find((x) => x.date === value)));
@@ -119,7 +122,7 @@ export function Body({ syncStatus }: { syncStatus: ReactNode }) {
 			if (date < profile!.birthdate)
 				throw new Error("The entry date must be after your birthdate.");
 			if (hasSkinfolds && !skinfolds.every(Boolean))
-				throw new Error("Enter all three skinfolds, or leave all three empty.");
+				throw new Error("Enter all four skinfolds, or leave all four empty.");
 			if (estimateError) throw new Error(estimateError);
 			const optional = Object.fromEntries(
 				measurements.map((key) => [
@@ -138,7 +141,9 @@ export function Body({ syncStatus }: { syncStatus: ReactNode }) {
 				skinfold_1_mm: skinfolds[0] ? Number(skinfolds[0]) : null,
 				skinfold_2_mm: skinfolds[1] ? Number(skinfolds[1]) : null,
 				skinfold_3_mm: skinfolds[2] ? Number(skinfolds[2]) : null,
-				body_fat_pct: estimate,
+				skinfold_4_mm: skinfolds[3] ? Number(skinfolds[3]) : null,
+				body_fat_method: estimate ? skinfoldMethod : null,
+				body_fat_pct: estimate?.percentage ?? null,
 			};
 			await saveBody(entry);
 			setSaved(
@@ -306,8 +311,8 @@ export function Body({ syncStatus }: { syncStatus: ReactNode }) {
 						<h3>
 							Skinfold readings <span>Optional · mm</span>
 						</h3>
-						<div className="form-grid three">
-							{sites.map((site, i) => {
+						<div className="form-grid">
+							{skinfoldSites.map((site, i) => {
 								const key = `skinfold_${i + 1}_mm` as keyof Draft;
 								return (
 									<Field
@@ -331,13 +336,21 @@ export function Body({ syncStatus }: { syncStatus: ReactNode }) {
 								<strong>Estimated body fat</strong>
 								<span>
 									{estimateError ||
-										(hasSkinfolds && estimate === null
-											? "Add all three readings to calculate."
-											: "Jackson–Pollock 3-site · Siri equation")}
+										(estimate &&
+											`${profile!.sex === "m" ? "Male" : "Female"} table · age ${estimate.ageBand} on entry date · ${estimate.sum} mm total${estimate.interpolated ? ` · interpolated between ${estimate.lowerSum} and ${estimate.upperSum} mm` : ""}.`)}
+								</span>
+								<span>
+									<a
+										href="/reference/durnin-womersley.html"
+										target="_blank"
+										rel="noreferrer"
+									>
+										View male/female tables
+									</a>
 								</span>
 							</div>
 							<span className="estimate-value">
-								{estimate?.toFixed(1) ?? "—"}
+								{estimate?.percentage.toFixed(1) ?? "—"}
 								<small>%</small>
 							</span>
 						</div>

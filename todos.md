@@ -18,7 +18,9 @@ TBD - very minor bug, ignore for now.
 
    Research and proposal: [Flexible activity and calorie planning](docs/activity-calorie-research.md). Includes calculations, sources, activity templates, and UI examples; feature implementation remains proposed.
 
-6. Remake the current caliper body fat caluclations to be the "Durnin–Womersley 4-Site Skinfold Method". The resulting percentage should be taken from the corresponding male/female tables (research and find them). It needs to automatically decide what age to pick based on current profile, and show the user a hint that the percentage was calculated based on for example "age 20-29, measured 50mm in total" or something similar so its transparent. There should also be a link to the tables in the hint, leading to a statically served file/path.
+6. [x] Remake the current caliper body fat caluclations to be the "Durnin–Womersley 4-Site Skinfold Method". The resulting percentage should be taken from the corresponding male/female tables (research and find them). It needs to automatically decide what age to pick based on current profile, and show the user a hint that the percentage was calculated based on for example "age 20-29, measured 50mm in total" or something similar so its transparent. There should also be a link to the tables in the hint, leading to a statically served file/path.
+
+   Uses the original 1974 Table 9 percentages with sex and age on the entry date. [Static reference tables](public/reference/durnin-womersley.html) include source links and interpolation rules. Apply the four-site and cleanup migrations (`202610220001`, `202610220002`) before deploying. The database cleanup deletes three-site caliper data while retaining weight and circumference history. The one-time browser cleanup has been retired.
 
 # Features
 

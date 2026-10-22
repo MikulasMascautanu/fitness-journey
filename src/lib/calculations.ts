@@ -1,4 +1,4 @@
-import type { Profile, Sex } from './types';
+import type { Profile } from './types';
 
 export function localDate(date = new Date()): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -20,19 +20,6 @@ export function ageOn(birthdate: string, on = localDate()): number {
 export function inRange(value: number, min: number, max: number, label: string): number {
   if (!Number.isFinite(value) || value < min || value > max) throw new Error(`${label} must be between ${min} and ${max}.`);
   return value;
-}
-
-export function bodyFat(sex: Sex, age: number, sites: readonly number[]): number {
-  inRange(age, 18, 120, 'Age');
-  if (sex !== 'm' && sex !== 'f') throw new Error('Select a sex for the calculation.');
-  if (sites.length !== 3) throw new Error('Enter all three skinfold readings.');
-  const sum = sites.reduce((total, site) => total + inRange(site, 1, 100, 'Skinfold (mm)'), 0);
-  const density = sex === 'm'
-    ? 1.10938 - 0.0008267 * sum + 0.0000016 * sum ** 2 - 0.0002574 * age
-    : 1.0994921 - 0.0009929 * sum + 0.0000023 * sum ** 2 - 0.0001392 * age;
-  const result = 495 / density - 450;
-  if (!Number.isFinite(result) || result <= 0 || result >= 70) throw new Error('These readings produce an out-of-range estimate. Check the skinfold values.');
-  return result;
 }
 
 export const goals = [-0.5, -0.25, 0, 0.25, 0.5] as const;

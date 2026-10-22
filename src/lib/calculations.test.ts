@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ageOn, bodyFat, energy, goalLabel, isValidDate, nutrition, recentDates, validateProfile } from './calculations';
+import { ageOn, energy, goalLabel, isValidDate, nutrition, recentDates, validateProfile } from './calculations';
 import type { Profile } from './types';
 
 const profile: Profile = { id: 'test', sex: 'm', birthdate: '1996-06-15', height_cm: 180, activity: 1.55, protein_g_per_kg: 2, fat_pct: 25, goal_kg_per_week: 0 };
@@ -19,19 +19,6 @@ describe('calendar dates', () => {
   it('builds consecutive local dates across month and year boundaries', () => {
     expect(recentDates(3, '2026-01-02')).toEqual(['2025-12-31', '2026-01-01', '2026-01-02']);
     expect(recentDates(3, '2024-03-01')).toEqual(['2024-02-28', '2024-02-29', '2024-03-01']);
-  });
-});
-
-describe('Jackson–Pollock and Siri', () => {
-  it('uses the male coefficients (30 years, sum 45 mm, density 1.0676965)', () => {
-    expect(bodyFat('m', 30, [10, 20, 15])).toBeCloseTo(13.61489393381172, 6);
-  });
-  it('uses the female coefficients (30 years, sum 60 mm, density 1.0440221)', () => {
-    expect(bodyFat('f', 30, [20, 25, 15])).toBeCloseTo(24.127894419093195, 6);
-  });
-  it('requires exactly three valid readings', () => {
-    for (const sites of [[10, 20], [10, 0, 20], [10, NaN, 20], [101, 10, 10]]) expect(() => bodyFat('m', 30, sites)).toThrow();
-    expect(() => bodyFat('m', 17, [10, 20, 15])).toThrow();
   });
 });
 

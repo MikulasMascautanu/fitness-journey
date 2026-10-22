@@ -24,7 +24,12 @@ export const browserStorage: Storage = {
 };
 function database() {
   // Keep the original storage identifier so existing records and pending writes remain accessible.
-  return openDB('fit-log-v1', 1, { upgrade(db) { db.createObjectStore('accounts'); } });
+  // Keep version 2 so databases already opened by this app remain accessible.
+  return openDB('fit-log-v1', 2, {
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) db.createObjectStore('accounts');
+    },
+  });
 }
 
 function apply(records: Records, write: PendingWrite): Records {

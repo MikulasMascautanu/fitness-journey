@@ -16,10 +16,12 @@ test('body logging, same-date overwrite, and reload persistence', async ({ page 
   await page.getByLabel('Weight', { exact: true }).fill('85.5');
   await page.getByLabel('Waist', { exact: true }).fill('90');
   const skinfolds = page.locator('.form-section').filter({ has: page.getByRole('heading', { name: 'Skinfold readings' }) });
-  await skinfolds.getByLabel('Chest', { exact: true }).fill('10');
-  await skinfolds.getByLabel('Abdomen', { exact: true }).fill('20');
-  await skinfolds.getByLabel('Thigh', { exact: true }).fill('15');
-  await expect(page.locator('.estimate-value')).toHaveText('13.6%');
+  await skinfolds.getByLabel('Biceps', { exact: true }).fill('10');
+  await skinfolds.getByLabel('Triceps', { exact: true }).fill('15');
+  await skinfolds.getByLabel('Subscapular', { exact: true }).fill('10');
+  await skinfolds.getByLabel('Suprailiac', { exact: true }).fill('15');
+  await expect(page.locator('.estimate-value')).toHaveText('21.5%');
+  await expect(page.locator('.estimate')).toContainText('Male table · age 30–39 on entry date · 50 mm total');
   await page.getByRole('button', { name: 'Update entry', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Updated your entry' })).toBeVisible();
   await page.getByLabel('Weight', { exact: true }).fill('85.2');
@@ -27,6 +29,8 @@ test('body logging, same-date overwrite, and reload persistence', async ({ page 
   await expect(page.locator('.summary-primary .big-number')).toHaveText('85.2kg');
   await page.reload();
   await expect(page.getByLabel('Weight', { exact: true })).toHaveValue('85.2');
+  await expect(page.getByLabel('Suprailiac', { exact: true })).toHaveValue('15');
+  await expect(page.locator('.estimate-value')).toHaveText('21.5%');
   await expect(page.locator('tbody tr')).toHaveCount(7);
   await page.getByRole('button', { name: 'Waist', exact: true }).click();
   await expect(page.getByRole('img', { name: /Waist history/ })).toBeVisible();
@@ -38,7 +42,8 @@ test('nutrition settings and daily logging persist', async ({ page }) => {
   await page.getByLabel('Activity level').selectOption('1.2');
   await page.locator('input[name="weekly-goal"][value="0"]').check();
   await page.getByRole('button', { name: 'Save targets' }).click();
-  await expect(page.locator('.target-card .stat-caption')).toHaveText('Maintain (0%)');
+  await expect(page.getByRole('button', { name: 'Save targets' })).toBeDisabled();
+  await expect(page.getByRole('radio', { name: 'Maintain 0%', exact: true })).toBeChecked();
   await page.getByRole('spinbutton', { name: 'Calories', exact: true }).fill('2400');
   await page.getByRole('spinbutton', { name: 'Protein', exact: true }).fill('160');
   await page.getByRole('spinbutton', { name: 'Carbs', exact: true }).fill('260');
@@ -47,7 +52,8 @@ test('nutrition settings and daily logging persist', async ({ page }) => {
   await expect(page.getByRole('status').filter({ hasText: 'Saved your nutrition' })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('spinbutton', { name: 'Calories' })).toHaveValue('2400');
-  await expect(page.locator('.target-card .stat-caption')).toHaveText('Maintain (0%)');
+  await expect(page.getByRole('radio', { name: 'Maintain 0%', exact: true })).toBeChecked();
+  await expect(page.getByLabel('Activity level')).toHaveValue('1.2');
 });
 
 test('nutrition target and plan fit in the initial desktop view', async ({ page }, testInfo) => {
@@ -93,6 +99,8 @@ test('custom macro targets validate, preview, and persist', async ({ page }) => 
   await fat.fill('23');
   await page.getByRole('button', { name: 'Save targets' }).click();
   await expect(page.locator('.macro-bar .fat')).toHaveAttribute('style', 'width: 23%;');
+  await expect(page.getByRole('button', { name: 'Save targets' })).toHaveText('Save targets');
+  await expect(page.getByRole('button', { name: 'Save targets' })).toBeDisabled();
   await page.reload();
   await expect(protein).toHaveValue('2.5');
   await expect(fat).toHaveValue('23');
@@ -126,17 +134,62 @@ test('plan stays open when presets restore saved targets', async ({ page }) => {
   await expect(page.getByRole('spinbutton', { name: 'Protein target', exact: true })).toHaveValue('1.6');
 });
 
-test('account settings change the caliper sites', async ({ page }) => {
+test('account settings select the female skinfold table', async ({ page }) => {
   await demo(page);
   await page.getByRole('link', { name: /Demo account/ }).click();
   await page.getByLabel('Sex used in formulas').selectOption('f');
   await page.getByRole('button', { name: 'Save profile' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Profile saved' })).toBeVisible();
   await page.getByRole('link', { name: 'Body', exact: true }).click();
-  await page.getByLabel('Triceps', { exact: true }).fill('20');
-  await page.getByLabel('Suprailiac', { exact: true }).fill('25');
-  await page.locator('.form-section').filter({ has: page.getByRole('heading', { name: 'Skinfold readings' }) }).getByLabel('Thigh', { exact: true }).fill('15');
-  await expect(page.locator('.estimate-value')).toHaveText('24.1%');
+  await page.getByLabel('Biceps', { exact: true }).fill('10');
+  await page.getByLabel('Triceps', { exact: true }).fill('15');
+  await page.getByLabel('Subscapular', { exact: true }).fill('10');
+  await page.getByLabel('Suprailiac', { exact: true }).fill('15');
+  await expect(page.locator('.estimate-value')).toHaveText('28.2%');
+  await expect(page.locator('.estimate')).toContainText('Female table · age 30–39 on entry date · 50 mm total');
+});
+
+test('skinfold estimates use backdated age bands, interpolate, validate, and clear', async ({ page }) => {
+  await demo(page);
+  await page.getByRole('link', { name: /Demo account/ }).click();
+  await page.getByLabel('Birthdate', { exact: true }).fill('1996-06-15');
+  await page.getByRole('button', { name: 'Save profile' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Profile saved' })).toBeVisible();
+  await page.getByRole('link', { name: 'Body', exact: true }).click();
+  await page.getByLabel('Date', { exact: true }).fill('2026-06-14');
+  await page.getByLabel('Weight', { exact: true }).fill('85');
+  await page.getByLabel('Biceps', { exact: true }).fill('10');
+  await page.getByRole('button', { name: 'Save entry', exact: true }).click();
+  await expect(page.getByRole('alert')).toHaveText('Enter all four skinfolds, or leave all four empty.');
+  await page.getByLabel('Triceps', { exact: true }).fill('15');
+  await page.getByLabel('Subscapular', { exact: true }).fill('10');
+  await page.getByLabel('Suprailiac', { exact: true }).fill('15');
+  await expect(page.locator('.estimate-value')).toHaveText('19.0%');
+  await expect(page.locator('.estimate')).toContainText('age 17–29');
+  await page.getByRole('button', { name: 'Save entry', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Saved your entry' })).toBeVisible();
+  await page.getByLabel('Date', { exact: true }).fill('2026-06-15');
+  await page.getByLabel('Weight', { exact: true }).fill('85');
+  for (const site of ['Biceps', 'Triceps', 'Subscapular']) await page.getByLabel(site, { exact: true }).fill('10');
+  await page.getByLabel('Suprailiac', { exact: true }).fill('22.5');
+  await expect(page.locator('.estimate-value')).toHaveText('22.0%');
+  await expect(page.locator('.estimate')).toContainText('age 30–39 on entry date · 52.5 mm total · interpolated between 50 and 55 mm');
+  for (const site of ['Biceps', 'Triceps', 'Subscapular', 'Suprailiac']) await page.getByLabel(site, { exact: true }).fill('50');
+  await page.getByRole('button', { name: 'Save entry', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('table covers totals of 20–170 mm');
+  await expect(page.locator('.estimate-value')).toHaveText('—%');
+  for (const site of ['Biceps', 'Triceps', 'Subscapular', 'Suprailiac']) await page.getByLabel(site, { exact: true }).fill('');
+  await page.getByRole('button', { name: 'Save entry', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Saved your entry' })).toBeVisible();
+  await page.reload();
+  await page.getByLabel('Date', { exact: true }).fill('2026-06-14');
+  await expect(page.locator('.estimate-value')).toHaveText('19.0%');
+  for (const site of ['Biceps', 'Triceps', 'Subscapular', 'Suprailiac']) await page.getByLabel(site, { exact: true }).fill('');
+  await page.getByRole('button', { name: 'Update entry', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Updated your entry' })).toBeVisible();
+  await page.reload();
+  await page.getByLabel('Date', { exact: true }).fill('2026-06-14');
+  await expect(page.locator('.estimate-value')).toHaveText('—%');
 });
 
 test('offline loading, deep navigation, and local entry', async ({ page, context }) => {
@@ -148,13 +201,23 @@ test('offline loading, deep navigation, and local entry', async ({ page, context
   await page.goto('/nutrition');
   await expect(page.getByRole('heading', { name: 'Nutrition', exact: true })).toBeVisible();
   await page.getByRole('spinbutton', { name: 'Calories' }).fill('2100');
-  await page.getByRole('spinbutton', { name: 'Protein' }).fill('150');
+  await page.getByRole('spinbutton', { name: 'Protein', exact: true }).fill('150');
   await page.getByRole('spinbutton', { name: 'Carbs' }).fill('240');
-  await page.getByRole('spinbutton', { name: 'Fat' }).fill('60');
+  await page.getByRole('spinbutton', { name: 'Fat', exact: true }).fill('60');
   await page.getByRole('button', { name: 'Save day', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Saved your nutrition' })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('spinbutton', { name: 'Calories' })).toHaveValue('2100');
+  await page.goto('/');
+  const tables = page.getByRole('link', { name: 'View male/female tables' });
+  await expect(tables).toHaveAttribute('href', '/reference/durnin-womersley.html');
+  const popupPromise = page.waitForEvent('popup');
+  await tables.click();
+  const reference = await popupPromise;
+  await expect(reference.getByRole('heading', { name: 'Durnin–Womersley 4-site skinfold tables' })).toBeVisible();
+  await expect(reference.getByRole('heading', { name: 'Male table', exact: true })).toBeVisible();
+  await expect(reference.locator('#m tbody tr').filter({ has: reference.getByRole('rowheader', { name: '50', exact: true }) }).getByRole('cell')).toHaveText(['19.0', '21.5', '24.6', '26.5']);
+  await expect(reference.locator('#f tbody tr').filter({ has: reference.getByRole('rowheader', { name: '50', exact: true }) }).getByRole('cell')).toHaveText(['26.5', '28.2', '31.0', '33.4']);
   await context.setOffline(false);
 });
 

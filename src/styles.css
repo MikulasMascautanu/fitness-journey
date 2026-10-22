@@ -930,6 +930,10 @@ input::placeholder {
 	font-size: 12px;
 	margin-left: 3px;
 }
+.estimate a {
+	color: inherit;
+	text-underline-offset: 3px;
+}
 .entry-form {
 	scroll-margin-top: 160px;
 }
