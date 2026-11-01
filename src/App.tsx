@@ -9,6 +9,7 @@ import { Icon } from "./components/Icon";
 import { formatDate, localDate } from "./lib/calculations";
 import { Body } from "./components/Body";
 import { Nutrition } from "./components/Nutrition";
+import { Portions } from "./components/Portions";
 
 export default function App() {
 	const [session, setSession] = useState<Session | null>(null);
@@ -257,6 +258,10 @@ function Shell({
 						<Icon name="nutrition" />
 						Nutrition
 					</NavLink>
+					<NavLink to="/portions">
+						<Icon name="portions" />
+						Portions
+					</NavLink>
 				</nav>
 				<div className="sidebar-bottom">
 					<NavLink className="account-link" to="/account">
@@ -286,9 +291,10 @@ function Shell({
 				</div>
 			</aside>
 			<main className="main-content" id="main">
-				{((pathname !== "/nutrition" && pathname !== "/") || !profile) && (
-					<div className="topline">{syncStatus}</div>
-				)}
+				{((pathname !== "/nutrition" &&
+					pathname !== "/" &&
+					pathname !== "/portions") ||
+					!profile) && <div className="topline">{syncStatus}</div>}
 				{syncError && (
 					<div className="notice error" role="alert">
 						Couldn’t sync: {syncError}{" "}
@@ -327,6 +333,7 @@ function Shell({
 							element={<Nutrition syncStatus={syncStatus} />}
 						/>
 						<Route path="/account" element={<ProfileForm />} />
+						<Route path="/portions" element={<Portions syncStatus={syncStatus} />} />
 						<Route
 							path="*"
 							element={

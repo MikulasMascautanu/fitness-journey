@@ -45,17 +45,25 @@ export type FoodDay = {
 	carbs_g: number;
 	fat_g: number;
 };
+export type PortionSettings = {
+	account_id: string;
+	display_name: string;
+	meat_raw_g: number;
+	carbs_raw_g: number;
+};
 export type PendingWrite = (
 	| { table: "profiles"; record: Profile }
 	| { table: "body_entries"; record: BodyEntry }
 	| { table: "food_days"; record: FoodDay }
 	| { table: "cycle_entries"; record: CycleEntry; deleted?: boolean }
+	| { table: "portion_settings"; record: PortionSettings }
 ) & { key: string; revision: string };
 export type Records = {
 	profile: Profile | null;
 	body: BodyEntry[];
 	food: FoodDay[];
 	cycles: CycleEntry[];
+	portions: PortionSettings[];
 };
 export type Snapshot = Records & { pending: PendingWrite[] };
 export const emptySnapshot = (): Snapshot => ({
@@ -63,5 +71,6 @@ export const emptySnapshot = (): Snapshot => ({
 	body: [],
 	food: [],
 	cycles: [],
+	portions: [],
 	pending: [],
 });

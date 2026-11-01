@@ -16,6 +16,7 @@ export function demoSnapshot(): Snapshot {
     }).reverse(),
     food: recentDates(14).filter(date => date !== localDate()).map((date, i) => ({ id: `demo-food-${i}`, account_id: id, date, kcal: [2430, 2580, 2700, 2450, 2380, 2820, 2520, 2490, 2390, 2650, 2410, 2540, 2470][i], protein_g: 170 + i % 4 * 3, carbs_g: 275 + i % 5 * 10, fat_g: 68 + i % 3 * 4 })).reverse(),
     cycles: [],
+    portions: [],
     pending: [],
   };
 }

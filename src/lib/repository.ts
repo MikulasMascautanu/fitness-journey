@@ -1,5 +1,5 @@
 import { openDB } from 'idb';
-import { emptySnapshot, type BodyEntry, type CycleEntry, type FoodDay, type PendingWrite, type Profile, type Records, type Snapshot } from './types';
+import { emptySnapshot, type BodyEntry, type CycleEntry, type FoodDay, type PendingWrite, type PortionSettings, type Profile, type Records, type Snapshot } from './types';
 
 export interface Storage {
   load(accountId: string): Promise<Snapshot | undefined>;
@@ -34,6 +34,7 @@ function database() {
 
 function apply(records: Records, write: PendingWrite): Records {
   if (write.table === 'profiles') return { ...records, profile: write.record };
+  if (write.table === 'portion_settings') return { ...records, portions: [...records.portions.filter(x => x.account_id !== write.record.account_id), write.record] };
   if (write.table === 'body_entries') return { ...records, body: [...records.body.filter(x => x.date !== write.record.date), write.record].sort((a, b) => b.date.localeCompare(a.date)) };
   if (write.table === 'cycle_entries') return { ...records, cycles: [ ...records.cycles.filter(x => x.id !== write.record.id), ...(write.deleted ? [] : [write.record]) ].sort((a, b) => b.start_date.localeCompare(a.start_date)) };
   return { ...records, food: [...records.food.filter(x => x.date !== write.record.date), write.record].sort((a, b) => b.date.localeCompare(a.date)) };
@@ -68,6 +69,7 @@ export class Repository {
   }
 
   saveProfile(record: Profile) { return this.write({ table: 'profiles', record, key: 'profile', revision: crypto.randomUUID() }); }
+  savePortions(record: PortionSettings) { return this.write({ table: 'portion_settings', record, key: `portions:${record.account_id}`, revision: crypto.randomUUID() }); }
   saveBody(record: BodyEntry) { return this.write({ table: 'body_entries', record, key: `body:${record.date}`, revision: crypto.randomUUID() }); }
   saveFood(record: FoodDay) { return this.write({ table: 'food_days', record, key: `food:${record.date}`, revision: crypto.randomUUID() }); }
   saveCycle(record: CycleEntry) { return this.write({ table: 'cycle_entries', record, key: `cycle:${record.id}`, revision: crypto.randomUUID() }); }

@@ -3,6 +3,7 @@ import { ageOn, localDate, validateProfile } from '../lib/calculations';
 import { errorMessage, useData } from '../lib/data';
 import type { Profile } from '../lib/types';
 import { Field, Notice, SelectField } from './Fields';
+import { PortionSettingsForm } from './PortionSettingsForm';
 
 export function ProfileForm() {
   const { profile, accountId, saveProfile, demo } = useData();
@@ -37,5 +38,6 @@ export function ProfileForm() {
         <div className="form-footer"><span className="muted">You can update these anytime.</span><button className="button primary" disabled={busy}>{busy ? 'Saving…' : profile ? 'Save profile' : 'Start tracking'}</button></div>
       </form>
     </section>
+    {profile && <PortionSettingsForm />}
   </>;
 }

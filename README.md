@@ -1,6 +1,6 @@
 # Fitness Journey
 
-A desktop-first fitness journal with Body and Nutrition routes, responsive phone input, Google accounts, and offline entry. Built with React, TypeScript, Vite, Supabase, IndexedDB, and lightweight SVG charts.
+A desktop-first fitness journal with Body, Nutrition, and Portions routes, responsive phone input, Google accounts, and offline entry. Built with React, TypeScript, Vite, Supabase, IndexedDB, and lightweight SVG charts.
 
 ## Run locally
 
@@ -21,6 +21,8 @@ Open the printed local URL. **Explore the demo** works without a backend. It con
 4. In Supabase Authentication → URL Configuration, set the production Site URL when available. Allow `http://localhost:5173`, `http://127.0.0.1:5173`, and the exact production origin as redirect URLs. Add `http://127.0.0.1:4173` only if you need to verify real sign-in in the production preview.
 5. Restart Vite after changing environment variables. Choose **Continue with Google**, then enter sex, birthdate, and height. A real account starts with no tracking entries. Log a weight to enable calorie targets.
 
+Apply [`supabase/migrations/202611010001_portion_settings.sql`](supabase/migrations/202611010001_portion_settings.sql) before deploying the Portions tab. It adds a directory of user-chosen names and raw ingredient weights that registered users can read, with inserts and updates restricted to the row's owner. Profiles and health records remain private.
+
 No Supabase project or Google OAuth credentials are included in the repository. Real Google sign-in and database policy verification require the above setup.
 
 ## Build and check
@@ -35,12 +37,13 @@ npm run test:e2e          # browser tests against the production build
 
 Browser tests cover desktop and phone layouts, both themes, Body logging and overwrite, male/female skinfold tables, backdated age selection, interpolation, nutrition settings/logging, reload persistence, sign-out, offline navigation/entry and reference tables, concurrent saves from two tabs, and manifest assets. Run `npm run build` before browser tests after source changes. Playwright starts and stops its own preview server on port 4173. Screenshots and failure traces are written to ignored `test-results/`. To use an existing Chromium installation, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its executable path.
 
-The browser tests use the explicitly labeled local demo. To check the backend after setup, sign in with two Google accounts and verify that each starts with its own profile and records; confirm via the Supabase API that one account cannot select or insert another account's rows. Also verify offline saves sync after reconnecting and that pending changes stay with their account when switching users.
+The browser tests use the explicitly labeled local demo. They also cover portion validation, cancellation, offline persistence, and read-only display of another person's portions. To check the backend after setup, sign in with two Google accounts and verify that each starts with its own profile and records; confirm via the Supabase API that one account cannot select or insert another account's private health rows. Save portions from both accounts and verify that each can read the directory but cannot insert or update the other's portion settings, including attempts to change `account_id`. Confirm anonymous access is denied. Also verify offline saves sync after reconnecting and that pending changes stay with their account when switching users.
 
 ## Storage and offline behavior
 
 - Protein targets accept 0.1–5 g/kg in 0.1 increments; fat targets accept 15–30% in 1% increments. The original presets remain available as shortcuts.
 - Profiles store birthdate, sex used by the equations, height, activity, and macro/weekly-goal settings.
+- Portions store one setting per account: a name chosen for the shared list, meat in raw grams, and an uncooked carb ingredient (for example dry rice or pasta) in raw grams per portion. Edit these in your profile; the Portions tab displays the shared list. Weights accept 0–5,000 g in 0.1 g steps; zero supports omitting an ingredient group. Registered users see saved portions from all users but can change only their own. The list exposes no emails or health records. The demo keeps its portions on the device. Recipe scaling is not implemented yet; future recipes can reference each setting by its stable account ID.
 - Body entries store weight, optional measurements, optional complete four-site calipers (biceps, triceps, subscapular, suprailiac), and a Durnin–Womersley method marker with the body-fat estimate. Sex and age on the entry date select the percentage column in [Durnin & Womersley (1974), Table 9, p. 95](https://doi.org/10.1079/BJN19740060). The hint shows the selected band and total. Exact rows use the published percentage; other totals interpolate linearly between adjacent rows. Totals outside the selected column's published range produce no estimate.
 - The [static male/female reference tables](public/reference/durnin-womersley.html) are served at `/reference/durnin-womersley.html`, linked from the form, and cached for offline use. The published youngest bands are male 17–29 and female 16–29; the app accepts adults 18+. Ages 50+ use the final column, including ages beyond the original sample (men through 72, women through 68). The reference is a checked-in static HTML file. A unit test verifies every table cell against the calculator’s JSON, so no generation script is needed.
 - Saved four-site body-fat history is not recalculated when a profile changes. The database cleanup migration deletes obsolete three-site readings and estimates while retaining weight and circumference history. Only complete Durnin–Womersley four-site estimates are supported. Clearing all four fields removes an estimate.
@@ -57,7 +60,7 @@ The estimates use the formulas in `goal.md`, with validation for adults aged 18�
 
 ## Install and deploy
 
-Deploy `dist/` to a static host over HTTPS. Configure the host to serve `index.html` for application routes such as `/nutrition` and `/account`; otherwise direct navigation will return 404 before the service worker is installed. Build with the public Supabase environment variables set and allow the deployed origin in Supabase's redirect settings. The build assumes the app lives at the domain root.
+Deploy `dist/` to a static host over HTTPS. Configure the host to serve `index.html` for application routes such as `/nutrition`, `/portions`, and `/account`; otherwise direct navigation will return 404 before the service worker is installed. Build with the public Supabase environment variables set and allow the deployed origin in Supabase's redirect settings. The build assumes the app lives at the domain root.
 
 The production build creates `manifest.webmanifest`, `sw.js`, and install icons. Chromium browsers offer an **Install** prompt when supported; Safari users can use Share → Add to Home Screen. Service workers require HTTPS or localhost. New versions show a reload prompt so an update does not silently discard an unfinished form.
 

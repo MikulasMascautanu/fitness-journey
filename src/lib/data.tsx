@@ -1,12 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { browserStorage, Repository } from './repository';
 import { remote } from './remote';
-import { emptySnapshot, type BodyEntry, type CycleEntry, type FoodDay, type Profile, type Snapshot } from './types';
+import { emptySnapshot, type BodyEntry, type CycleEntry, type FoodDay, type PortionSettings, type Profile, type Snapshot } from './types';
 import { demoSnapshot } from './demo';
 
 type Data = Snapshot & {
   accountId: string; demo: boolean; loading: boolean; storageError: string; syncError: string; syncing: boolean; online: boolean;
   saveProfile(profile: Profile): Promise<void>;
+  savePortions(settings: PortionSettings): Promise<void>;
   saveBody(entry: BodyEntry): Promise<void>;
   saveFood(entry: FoodDay): Promise<void>;
   saveCycle(entry: CycleEntry): Promise<void>;
@@ -69,6 +70,7 @@ export function DataProvider({ accountId, demo, children }: { accountId: string;
   }
   return <Context.Provider value={{ ...snapshot, accountId, demo, loading, storageError, syncError, syncing, online, sync,
     saveProfile: profile => save(repo => repo.saveProfile(profile)),
+    savePortions: settings => save(repo => repo.savePortions(settings)),
     saveBody: entry => save(repo => repo.saveBody(entry)),
     saveFood: entry => save(repo => repo.saveFood(entry)),
     saveCycle: entry => save(repo => repo.saveCycle(entry)),

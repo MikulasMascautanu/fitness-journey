@@ -1384,6 +1384,29 @@ abbr {
 	gap: 12px;
 	margin-top: 4px;
 }
+.portion-fields {
+	border: 0;
+	padding: 0;
+	margin: 0;
+	min-width: 0;
+	display: grid;
+	gap: 20px;
+}
+.portion-footer {
+	justify-content: flex-end;
+	gap: 12px;
+}
+.portions-table tbody th {
+	white-space: normal;
+	overflow-wrap: anywhere;
+	min-width: 90px;
+}
+.portion-owner {
+	display: inline-block;
+	margin-left: 8px;
+	font-size: 10px;
+	color: var(--accent);
+}
 .target-presets button {
 	min-height: 44px;
 }

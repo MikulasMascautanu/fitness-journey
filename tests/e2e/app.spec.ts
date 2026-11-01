@@ -51,7 +51,7 @@ test('nutrition settings and daily logging persist', async ({ page }) => {
   await page.getByRole('button', { name: 'Save day', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Saved your nutrition' })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('spinbutton', { name: 'Calories' })).toHaveValue('2400');
+  await expect(page.getByRole('spinbutton', { name: 'Calories', exact: true })).toHaveValue('2400');
   await expect(page.getByRole('radio', { name: 'Maintain 0%', exact: true })).toBeChecked();
   await expect(page.getByLabel('Activity level')).toHaveValue('1.2');
 });
@@ -200,14 +200,14 @@ test('offline loading, deep navigation, and local entry', async ({ page, context
   await context.setOffline(true);
   await page.goto('/nutrition');
   await expect(page.getByRole('heading', { name: 'Nutrition', exact: true })).toBeVisible();
-  await page.getByRole('spinbutton', { name: 'Calories' }).fill('2100');
+  await page.getByRole('spinbutton', { name: 'Calories', exact: true }).fill('2100');
   await page.getByRole('spinbutton', { name: 'Protein', exact: true }).fill('150');
   await page.getByRole('spinbutton', { name: 'Carbs' }).fill('240');
   await page.getByRole('spinbutton', { name: 'Fat', exact: true }).fill('60');
   await page.getByRole('button', { name: 'Save day', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Saved your nutrition' })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('spinbutton', { name: 'Calories' })).toHaveValue('2100');
+  await expect(page.getByRole('spinbutton', { name: 'Calories', exact: true })).toHaveValue('2100');
   await page.goto('/');
   const tables = page.getByRole('link', { name: 'View male/female tables' });
   await expect(tables).toHaveAttribute('href', '/reference/durnin-womersley.html');
@@ -227,7 +227,7 @@ test('light and dark layouts fit the viewport and sign-out hides data', async ({
   await demo(page);
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
-    for (const name of ['Body', 'Nutrition']) {
+    for (const name of ['Body', 'Nutrition', 'Portions']) {
       await page.getByRole('link', { name, exact: true }).click();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await page.screenshot({ path: `test-results/${test.info().project.name}-${name.toLowerCase()}-${colorScheme}.png`, fullPage: true });
@@ -237,6 +237,72 @@ test('light and dark layouts fit the viewport and sign-out hides data', async ({
   await expect(page.getByRole('heading', { name: 'A place for your progress' })).toBeVisible();
   await expect(page.locator('table')).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+test('portion settings validate, cancel, update, and persist offline without editing another person', async ({ page, context }) => {
+  await demo(page);
+  await page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('fit-log-v1', 2);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const transaction = database.transaction('accounts', 'readwrite');
+    const store = transaction.objectStore('accounts');
+    const request = store.get('demo');
+    request.onsuccess = () => store.put({ ...request.result, portions: [{ account_id: 'other-demo-user', display_name: 'Alex', meat_raw_g: 200, carbs_raw_g: 90 }] }, 'demo');
+    await new Promise<void>((resolve, reject) => { transaction.oncomplete = () => resolve(); transaction.onerror = () => reject(transaction.error); });
+    database.close();
+  });
+  await page.reload();
+  await page.getByRole('link', { name: 'Portions', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Portions', exact: true })).toBeVisible();
+  const list = page.getByRole('table');
+  await expect(list.getByRole('row', { name: 'Alex 200 90', exact: true })).toBeVisible();
+  await expect(list.getByRole('button')).toHaveCount(0);
+  await expect(page.locator('main form')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Manage your portion sizes in your profile.' }).click();
+  await expect(page.getByRole('heading', { name: 'Your profile', exact: true })).toBeVisible();
+  const name = page.getByLabel('Name shown in the list');
+  const meat = page.getByLabel('Meat per portion');
+  const carbs = page.getByLabel('Carbs per portion');
+  const save = page.getByRole('button', { name: 'Save portions', exact: true });
+  await expect(name).toHaveValue('');
+  await name.fill('   ');
+  await meat.fill('150'); await carbs.fill('75'); await save.click();
+  await expect(page.getByRole('alert')).toHaveText('Enter a name between 1 and 80 characters.');
+  await name.fill('Sam'); await meat.fill('-1'); await save.click();
+  expect(await meat.evaluate((input: HTMLInputElement) => input.validity.rangeUnderflow)).toBe(true);
+  await meat.fill('150.55'); await save.click();
+  expect(await meat.evaluate((input: HTMLInputElement) => input.validity.stepMismatch)).toBe(true);
+  await meat.fill('150.5'); await carbs.fill('5001'); await save.click();
+  expect(await carbs.evaluate((input: HTMLInputElement) => input.validity.rangeOverflow)).toBe(true);
+  await carbs.fill('75'); await save.click();
+  await expect(page.getByRole('status').filter({ hasText: 'Portions saved.' })).toBeVisible();
+  await page.getByRole('link', { name: 'Portions', exact: true }).click();
+  await expect(list.getByRole('row', { name: 'Sam You 150.5 75', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: /Demo account/ }).click();
+  await meat.fill('175');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(meat).toHaveValue('150.5');
+  await expect(save).toBeDisabled();
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await context.setOffline(true);
+  await page.goto('/account');
+  await expect(meat).toHaveValue('150.5');
+  await name.fill('Sam updated'); await meat.fill('175'); await carbs.fill('0'); await save.click();
+  await expect(page.getByRole('status').filter({ hasText: 'Portions saved.' })).toBeVisible();
+  await page.reload();
+  await expect(name).toHaveValue('Sam updated');
+  await expect(carbs).toHaveValue('0');
+  await page.goto('/portions');
+  await expect(page.locator('main form')).toHaveCount(0);
+  await expect(list.getByRole('row')).toHaveCount(3);
+  await expect(list.getByRole('row', { name: 'Alex 200 90', exact: true })).toBeVisible();
+  await expect(list.getByRole('row', { name: 'Sam updated You 175 0', exact: true })).toBeVisible();
+  await context.setOffline(false);
 });
 
 test('manifest supplies install icons', async ({ request }) => {

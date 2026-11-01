@@ -1,6 +1,6 @@
 import type { Remote } from "./repository";
 import { supabase } from "./supabase";
-import type { BodyEntry, CycleEntry, FoodDay, Profile } from "./types";
+import type { BodyEntry, CycleEntry, FoodDay, PortionSettings, Profile } from "./types";
 
 async function assertSession(accountId: string) {
 	const { data, error } = await supabase!.auth.getSession();
@@ -12,14 +12,15 @@ async function assertSession(accountId: string) {
 export const remote: Remote = {
 	async pull(accountId) {
 		await assertSession(accountId);
-		const [profile, body, food, cycles] = await Promise.all([
+		const [profile, body, food, cycles, portions] = await Promise.all([
 			supabase!.from("profiles").select("*").eq("id", accountId).maybeSingle(),
 			allRows<BodyEntry>("body_entries", accountId),
 			allRows<FoodDay>("food_days", accountId),
 			allRows<CycleEntry>("cycle_entries", accountId),
+			allPortions(),
 		]);
 		if (profile.error) throw profile.error;
-		return { profile: profile.data as Profile | null, body, food, cycles };
+		return { profile: profile.data as Profile | null, body, food, cycles, portions };
 	},
 	async push(write) {
 		await assertSession(
@@ -38,10 +39,25 @@ export const remote: Remote = {
 			.from(write.table)
 			.upsert<
 				Record<string, unknown>
-			>(write.record, { onConflict: write.table === "profiles" || write.table === "cycle_entries" ? "id" : "account_id,date" });
+			>(write.record, { onConflict: write.table === "portion_settings" ? "account_id" : write.table === "profiles" || write.table === "cycle_entries" ? "id" : "account_id,date" });
 		if (error) throw error;
 	},
 };
+
+// This directory is shared with signed-in users; private profiles stay owner-only.
+async function allPortions(): Promise<PortionSettings[]> {
+	const rows: PortionSettings[] = [];
+	for (let offset = 0; ; offset += 1000) {
+		const { data, error } = await supabase!
+			.from("portion_settings")
+			.select("account_id,display_name,meat_raw_g,carbs_raw_g")
+			.order("account_id")
+			.range(offset, offset + 999);
+		if (error) throw error;
+		rows.push(...(data as PortionSettings[]));
+		if (data.length < 1000) return rows;
+	}
+}
 
 // Supabase caps a response at 1,000 rows by default. Keep the full history available.
 async function allRows<T>(
