@@ -73,8 +73,8 @@ test('nutrition target and plan fit in the initial desktop view', async ({ page 
 test('custom macro targets validate, preview, and persist', async ({ page }) => {
   await demo(page);
   await page.getByRole('link', { name: 'Nutrition', exact: true }).click();
-  const protein = page.getByRole('spinbutton', { name: 'Protein target', exact: true });
-  const fat = page.getByRole('spinbutton', { name: 'Fat target', exact: true });
+  const protein = page.getByRole('spinbutton', { name: 'Protein target (grams per kg)', exact: true });
+  const fat = page.getByRole('spinbutton', { name: 'Fat target (% of calories)', exact: true });
   const liveProtein = page.locator('.target-card .macro-grid>div').first().locator('strong');
   const originalProtein = await liveProtein.textContent();
   await protein.fill('');
@@ -131,7 +131,7 @@ test('plan stays open when presets restore saved targets', async ({ page }) => {
   await summary.click();
   await expect(plan).not.toHaveAttribute('open');
   await summary.click();
-  await expect(page.getByRole('spinbutton', { name: 'Protein target', exact: true })).toHaveValue('1.6');
+  await expect(page.getByRole('spinbutton', { name: 'Protein target (grams per kg)', exact: true })).toHaveValue('1.6');
 });
 
 test('account settings select the female skinfold table', async ({ page }) => {

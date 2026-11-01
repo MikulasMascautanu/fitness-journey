@@ -376,26 +376,35 @@ function PlanSettings({
 								className="protein"
 								style={{ width: `${((target.protein * 4) / target.kcal) * 100}%` }}
 							/>
+							<span className="fat" style={{ width: `${draft.fat_pct}%` }} />
 							<span
 								className="carbs"
 								style={{ width: `${((target.carbs * 4) / target.kcal) * 100}%` }}
 							/>
-							<span className="fat" style={{ width: `${draft.fat_pct}%` }} />
 						</div>
 						<div className="macro-grid">
-							{[
-								{ name: "Protein", key: "protein" },
-								{ name: "Carbs", key: "carbs" },
-								{ name: "Fat", key: "fat" },
-							].map(({ name, key }) => (
+							{([
+								{
+									name: "Protein",
+									key: "protein",
+									percentage: ((target.protein * 4) / target.kcal) * 100,
+								},
+								{ name: "Fat", key: "fat", percentage: draft.fat_pct },
+								{
+									name: "Carbs",
+									key: "carbs",
+									percentage: ((target.carbs * 4) / target.kcal) * 100,
+								},
+							] as const).map(({ name, key, percentage }) => (
 								<div key={key}>
 									<span className="stat-label">
 										<i className={`macro-dot ${key}`} />
 										{name}
 									</span>
 									<strong>
-										{Math.round(target![key as "protein" | "carbs" | "fat"])}
-										<small> g</small>
+										{Math.round(target[key])}
+									<small> g</small>{" "}
+									<small className="macro-percentage">({Math.floor(percentage)}%)</small>
 									</strong>
 								</div>
 							))}
@@ -481,6 +490,7 @@ function PlanSettings({
 							{[
 								{
 									label: "Protein target",
+									unitLabel: "grams per kg",
 									value: protein,
 									setValue: setProtein,
 									min: 0.1,
@@ -491,6 +501,7 @@ function PlanSettings({
 								},
 								{
 									label: "Fat target",
+									unitLabel: "% of calories",
 									value: fat,
 									setValue: setFat,
 									min: 15,
@@ -499,10 +510,10 @@ function PlanSettings({
 									unit: "%",
 									presets: [20, 25, 30],
 								},
-							].map(({ label, value, setValue, min, max, step, unit, presets }) => (
+							].map(({ label, unitLabel, value, setValue, min, max, step, unit, presets }) => (
 								<div key={label}>
 									<Field
-										label={label}
+										label={`${label} (${unitLabel})`}
 										unit={unit}
 										type="number"
 										inputMode={step < 1 ? "decimal" : "numeric"}

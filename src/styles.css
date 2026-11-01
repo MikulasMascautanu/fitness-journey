@@ -1330,6 +1330,9 @@ abbr {
 	.target-top {
 		grid-template-columns: 1fr;
 	}
+	.macro-grid .macro-percentage {
+		display: block;
+	}
 	.energy-stats {
 		border-left: 0;
 		padding: 16px 0 0;
